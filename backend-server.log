@@ -1,0 +1,7 @@
+[db] MongoDB connected: localhost
+[server] Portfolio API running on http://localhost:5000
+[server] CORS origin: http://localhost:5173
+[0mPOST /api/contact [32m201[0m 84.628 ms - 104[0m
+[0mGET /api/health [32m200[0m 1.058 ms - 54[0m
+[0mPOST /api/contact [32m201[0m 4.040 ms - 104[0m
+[0mPOST /api/contact [33m400[0m 0.335 ms - 65[0m
