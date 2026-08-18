@@ -1,0 +1,251 @@
+/* Tablet and down — collapse nav + stack layout */
+@media (max-width: 1024px) {
+  .nav-links,
+  .nav-cta {
+    display: none;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  /* MERN flow 2 columns on tablet */
+  .mern-layer-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 34px 44px;
+  }
+
+  .mern-node-wrap:nth-child(2)::after,
+  .mern-node-wrap:nth-child(2)::before {
+    display: none;
+  }
+
+  /* Build cards 2 columns */
+  .build-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Skills bento: 2 columns, full-width cards span whole row */
+  .skills-bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Medium screens — stack the featured project */
+@media (max-width: 900px) {
+  .project-featured-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 44px;
+    padding-top: 20px;
+  }
+
+  .hero-visual {
+    order: -1;
+    max-width: 340px;
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  #home {
+    align-items: flex-start;
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 18px;
+  }
+
+  .footer-nav {
+    justify-content: center;
+  }
+
+  /* GitHub head */
+  .github-card {
+    padding: 22px;
+  }
+
+  .github-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .github-card-meta {
+    order: -1;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 640px) {
+  :root {
+    --section-gap: 84px;
+  }
+
+  .container {
+    padding-inline: 20px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* About stats */
+  .about-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* MERN flow: single column with vertical connectors */
+  .mern-layer-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .mern-node-wrap:not(:last-child)::after {
+    right: auto;
+    left: 50%;
+    top: auto;
+    bottom: -20px;
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.6), rgba(56, 189, 248, 0.5));
+  }
+
+  .mern-node-wrap:not(:last-child)::before {
+    right: auto;
+    left: calc(50% - 6px);
+    top: auto;
+    bottom: -16px;
+    transform: rotate(90deg);
+    border-left-color: var(--accent-2);
+  }
+
+  /* Build cards */
+  .build-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Skills bento: single column */
+  .skills-bento {
+    grid-template-columns: 1fr;
+  }
+
+  .skills-bento .span-2 {
+    grid-column: auto;
+  }
+
+  /* Timeline */
+  .timeline-item {
+    padding-left: 60px;
+  }
+
+  .timeline-dot {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .timeline::before {
+    left: 21px;
+  }
+
+  .timeline-card {
+    padding: 22px;
+  }
+
+  /* Modal */
+  .modal-layer {
+    padding: 12px;
+  }
+
+  .modal-body {
+    padding: 24px 20px 26px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .hero {
+    grid-template-columns: 1fr 0.85fr;
+    gap: 36px;
+  }
+
+  .about-grid {
+    gap: 36px;
+  }
+}
+
+/* Hide the custom cursor on coarse pointer / touch and for reduced motion */
+@media (hover: none), (pointer: coarse) {
+  .custom-cursor {
+    display: none;
+  }
+
+  .tilt-card {
+    transform: none !important;
+  }
+
+  .magnetic-wrap {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-cursor {
+    display: none;
+  }
+
+  .tilt-card {
+    transform: none !important;
+  }
+
+  .magnetic-wrap {
+    transform: none !important;
+  }
+
+  .hero-glow,
+  .hero-orbit,
+  .hero-core {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .skill-card::after,
+  .skill-card .skill-icon svg {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1400px) {
+  :root {
+    --container: 1200px;
+  }
+}
