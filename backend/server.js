@@ -5,14 +5,17 @@ import morgan from 'morgan';
 import { env, validateEnv } from './config/env.js';
 import { connectDB } from './config/db.js';
 import contactRoutes from './routes/contactRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import contentRoutes from './routes/contentRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
+import { seedAdmin } from './controllers/authController.js';
 
 validateEnv();
 
 const app = express();
 
 app.use(cors({ origin: env.clientOrigin, credentials: true }));
-app.use(express.json({ limit: '50kb' }));
+app.use(express.json({ limit: '1mb' }));
 
 if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
@@ -23,12 +26,15 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/contact', contactRoutes);
+app.use('/api/admin', authRoutes);
+app.use('/api/content', contentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
 
 async function start() {
   await connectDB();
+  await seedAdmin();
 
   app.listen(env.port, () => {
     console.log(`[server] Portfolio API running on http://localhost:${env.port}`);

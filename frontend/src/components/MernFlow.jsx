@@ -3,8 +3,10 @@ import { Atom, Server, Route, Database } from 'lucide-react';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
+import { useContent } from '../content/ContentContext';
+import { mernIcon } from '../content/iconMap';
 
-const layers = [
+const defaultLayers = [
   {
     icon: Atom,
     name: 'React.js',
@@ -17,7 +19,7 @@ const layers = [
     name: 'Node.js',
     role: 'Runtime',
     desc: 'JavaScript on the server',
-    color: '#8a63d2',
+    color: '#3b82f6',
   },
   {
     icon: Route,
@@ -37,11 +39,14 @@ const layers = [
 
 export function MernFlow() {
   const reduced = usePrefersReducedMotion();
+  const { content } = useContent();
+  const layers = content.mern || defaultLayers;
 
   return (
     <section id="stack" aria-label="MERN stack architecture">
       <div className="container">
         <SectionHeading
+          number={3}
           kicker="MERN Stack"
           title="The stack I build with"
           sub="From interface to database — how a request flows through my stack."
@@ -50,8 +55,10 @@ export function MernFlow() {
         <Reveal>
           <div className="mern-flow">
             <div className="mern-layer-row">
-              {layers.map((layer, i) => (
-                <div className="mern-node-wrap" key={layer.name}>
+              {layers.map((layer, i) => {
+                const Icon = layer.icon || mernIcon(layer.id);
+                return (
+                <div className="mern-node-wrap" key={layer.id || layer.name}>
                   <motion.div
                     className="mern-node"
                     initial={reduced ? false : { opacity: 0, y: 24, scale: 0.94 }}
@@ -63,14 +70,15 @@ export function MernFlow() {
                       className="mern-node-icon"
                       style={{ color: layer.color, borderColor: `${layer.color}55` }}
                     >
-                      <layer.icon aria-hidden="true" />
+                      <Icon aria-hidden="true" />
                     </div>
                     <div className="mern-node-name">{layer.name}</div>
                     <div className="mern-node-role">{layer.role}</div>
                     <div className="mern-node-desc">{layer.desc}</div>
                   </motion.div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </Reveal>

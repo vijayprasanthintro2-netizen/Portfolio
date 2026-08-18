@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Github, Star, GitFork, ExternalLink, FolderGit2 } from 'lucide-react';
-import { socials } from '../config';
+import { socials as defaultSocials } from '../config';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
 import { Magnetic } from './Magnetic';
+import { useContent } from '../content/ContentContext';
 
 export function GithubSection() {
   const [repos, setRepos] = useState([]);
   const [state, setState] = useState('loading'); // 'loading' | 'ready' | 'error'
+  const { content } = useContent();
+  const socials = content.socials || defaultSocials;
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +49,7 @@ export function GithubSection() {
     <section id="github" aria-label="GitHub">
       <div className="container">
         <SectionHeading
+          number={9}
           kicker="GitHub"
           title="My open-source work"
           sub="Public repositories I've built while learning and shipping."

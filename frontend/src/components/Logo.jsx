@@ -10,8 +10,8 @@ export function LogoMark({ size = 30 }) {
     >
       <defs>
         <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#7c5cff" />
-          <stop offset="1" stopColor="#22d3ee" />
+          <stop stopColor="#3b82f6" />
+          <stop offset="1" stopColor="#38bdf8" />
         </linearGradient>
       </defs>
       <rect width="32" height="32" rx="8" fill="#0b0f1d" />

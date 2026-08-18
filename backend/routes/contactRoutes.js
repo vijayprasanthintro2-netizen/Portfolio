@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import { protect } from '../middleware/auth.js';
 import {
   createContactMessage,
   getContactMessages,
+  deleteContactMessage,
 } from '../controllers/contactController.js';
 
 const router = Router();
@@ -16,6 +18,7 @@ const contactLimiter = rateLimit({
 });
 
 router.post('/', contactLimiter, createContactMessage);
-router.get('/', getContactMessages);
+router.get('/', protect, getContactMessages);
+router.delete('/:id', protect, deleteContactMessage);
 
 export default router;

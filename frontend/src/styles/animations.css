@@ -73,6 +73,129 @@
   }
 }
 
+/* ---------- Living hero background ---------- */
+@keyframes grid-drift-large {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(10px, -120px, 0);
+  }
+}
+
+/* Slow radial light that sweeps across the hero */
+@keyframes light-drift {
+  0% {
+    transform: translate(-30%, -20%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(24%, 10%) scale(1.18);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-30%, -20%) scale(1);
+    opacity: 0.5;
+  }
+}
+
+/* Floating ambient light particles — low opacity, slow drift, size pulse */
+@keyframes light-float {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--light-op, 0.5);
+  }
+  50% {
+    transform: translate3d(var(--float-x, 30px), var(--float-y, -46px), 0);
+  }
+  88% {
+    opacity: var(--light-op, 0.5);
+  }
+  100% {
+    transform: translate3d(var(--float-x-rev, -20px), var(--float-y-rev, -90px), 0);
+    opacity: 0;
+  }
+}
+
+@keyframes light-blink {
+  0%,
+  100% {
+    opacity: var(--light-op, 0.45);
+  }
+  50% {
+    opacity: min(calc(var(--light-op, 0.45) * 0.4), 0.2);
+  }
+}
+
+/* ---------- Terminal ---------- */
+@keyframes term-scan {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(320%);
+  }
+}
+
+@keyframes term-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes divider-point {
+  0% {
+    transform: translateX(-3px);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(var(--divider-width, 120px));
+    opacity: 0;
+  }
+}
+
+/* ---------- Section number roll ---------- */
+@keyframes number-roll {
+  0% {
+    transform: translateY(var(--roll-h, 80%));
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(calc(var(--roll-h, 80%) * -0.18));
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ---------- Progress bar ---------- */
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 /* ---------- Skill icon micro-animations ---------- */
 @keyframes icon-bracket {
   0%,
@@ -88,11 +211,11 @@
   0%,
   100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 0 rgba(124, 92, 255, 0));
+    filter: drop-shadow(0 0 0 rgba(59, 130, 246, 0));
   }
   50% {
     transform: scale(1.08);
-    filter: drop-shadow(0 0 8px rgba(124, 92, 255, 0.45));
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.45));
   }
 }
 
@@ -160,6 +283,131 @@
   }
 }
 
+/* ---------- Preloader boot ---------- */
+@keyframes boot-line {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes boot-cursor-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- Ambient / grid ---------- */
+@keyframes grid-drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 56px;
+  }
+}
+
+@keyframes hero-grid-scroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 64px;
+  }
+}
+
+@keyframes scanline-sweep {
+  0% {
+    top: -8%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    top: 104%;
+    opacity: 0;
+  }
+}
+
+@keyframes hero-light-drift {
+  0%,
+  100% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+    opacity: 0.5;
+  }
+  33% {
+    transform: translate3d(5%, 3%, 0) scale(1.15);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translate3d(-3%, 5%, 0) scale(0.95);
+    opacity: 0.6;
+  }
+}
+
+/* ---------- Marquee ---------- */
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------- Terminal ---------- */
+@keyframes term-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  95% {
+    opacity: 0;
+  }
+}
+
+@keyframes terminal-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  3% {
+    opacity: 0.86;
+  }
+  6% {
+    opacity: 1;
+  }
+  54% {
+    opacity: 0.93;
+  }
+  57% {
+    opacity: 1;
+  }
+}
+
+@keyframes term-scanline {
+  0% {
+    top: -6%;
+  }
+  100% {
+    top: 104%;
+  }
+}
+
 @keyframes term-fade-in {
   from {
     opacity: 0;
@@ -176,16 +424,114 @@
   animation: term-fade-in 0.5s var(--ease-out) forwards;
 }
 
+/* ---------- Section dividers ---------- */
+@keyframes divider-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes divider-travel {
+  0% {
+    left: -6px;
+  }
+  100% {
+    left: calc(100% - 6px);
+  }
+}
+
+@keyframes num-roll {
+  0% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+}
+
+/* ---------- Skill bars ---------- */
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes bar-glow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* ---------- Scroll reveal (CSS fallback for IntersectionObserver) ---------- */
 .reveal {
   opacity: 0;
-  transform: translateY(34px);
-  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+  transform: translateY(30px) scale(0.975);
+  filter: blur(5px);
+  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out),
+    filter 0.8s var(--ease-out);
   will-change: opacity, transform;
 }
 
 .reveal.is-visible {
   opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* Blur-to-sharp reveal */
+.reveal-blur {
+  transform: translateY(18px);
+  filter: blur(10px);
+  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out),
+    filter 0.9s var(--ease-out);
+}
+
+.reveal-blur.is-visible {
+  filter: blur(0);
+}
+
+/* Scale-in reveal (0.96 → 1) */
+.reveal-scale {
+  transform: translateY(24px) scale(0.96);
+  transition: opacity 0.75s var(--ease-out), transform 0.75s var(--ease-out);
+}
+
+.reveal-scale.is-visible {
+  transform: none;
+}
+
+/* Slide from left / right */
+.reveal-slide-left {
+  transform: translateX(-32px);
+  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+}
+
+.reveal-slide-right {
+  transform: translateX(32px);
+  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+}
+
+.reveal-slide-left.is-visible,
+.reveal-slide-right.is-visible {
   transform: none;
 }
 
@@ -199,6 +545,165 @@
 
 .reveal-delay-3 {
   transition-delay: 0.24s;
+}
+
+.reveal-delay-4 {
+  transition-delay: 0.32s;
+}
+
+.reveal-delay-5 {
+  transition-delay: 0.4s;
+}
+
+.reveal-delay-6 {
+  transition-delay: 0.48s;
+}
+
+
+/* ---------- Terminal ---------- */
+@keyframes term-cursor-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes term-scanline-move {
+  0% {
+    transform: translateY(-140%);
+  }
+  100% {
+    transform: translateY(1400%);
+  }
+}
+
+@keyframes term-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  7% {
+    opacity: 0.96;
+  }
+  9% {
+    opacity: 1;
+  }
+  71% {
+    opacity: 0.985;
+  }
+  73% {
+    opacity: 1;
+  }
+}
+
+@keyframes term-float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ---------- Marquee ---------- */
+@keyframes marquee-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------- Backdrop ---------- */
+@keyframes grid-move {
+  from {
+    transform: perspective(560px) rotateX(62deg) translateY(0) scale(1.5);
+  }
+  to {
+    transform: perspective(560px) rotateX(62deg) translateY(220px) scale(1.5);
+  }
+}
+
+@keyframes grid-shift-x {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: 44px;
+  }
+}
+
+@keyframes backdrop-grid-scroll {
+  to {
+    transform: translateY(56px);
+  }
+}
+
+@keyframes dot-drift {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  20% {
+    opacity: var(--dot-opacity, 0.4);
+  }
+  80% {
+    opacity: var(--dot-opacity, 0.4);
+  }
+  100% {
+    transform: translate(var(--dot-x, 30px), var(--dot-y, -120px));
+    opacity: 0;
+  }
+}
+
+@keyframes scanline-drop {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.55;
+  }
+  88% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateY(110vh);
+    opacity: 0;
+  }
+}
+
+/* ---------- Section divider + numbers ---------- */
+@keyframes divider-glow-travel {  0% {
+    transform: translateX(0) scale(0.6);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(88px) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes num-tick {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
 }
 
 /* ---------- Reduced motion ---------- */
@@ -215,8 +720,13 @@
     transition-duration: 0.001ms !important;
   }
 
-  .reveal {
+  .reveal,
+  .reveal-blur,
+  .reveal-scale,
+  .reveal-slide-left,
+  .reveal-slide-right {
     opacity: 1;
     transform: none;
+    filter: none;
   }
 }

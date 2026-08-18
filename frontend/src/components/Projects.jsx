@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Github, Rocket, ExternalLink, Star, Info } from 'lucide-react';
-import { projects } from '../data/projects';
+import { projects as defaultProjects } from '../data/projects';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
 import { SpotlightCard } from './SpotlightCard';
 import { ProjectModal } from './ProjectModal';
 import { Magnetic } from './Magnetic';
 import { TiltCard } from './TiltCard';
+import { useContent } from '../content/ContentContext';
 
 function CardButtons({ project, onDetails }) {
   return (
@@ -48,6 +49,8 @@ function CardButtons({ project, onDetails }) {
 
 export function Projects() {
   const [selected, setSelected] = useState(null);
+  const { content } = useContent();
+  const projects = content.projects || defaultProjects;
 
   const featured = projects.filter((p) => p.featured);
   const rest = projects.filter((p) => !p.featured);
@@ -56,6 +59,7 @@ export function Projects() {
     <section id="projects" aria-label="Projects">
       <div className="container">
         <SectionHeading
+          number={4}
           kicker="Featured Projects"
           title="Some of the applications I've built using modern web technologies."
           sub="Real projects built while learning full-stack development — from idea to working application."

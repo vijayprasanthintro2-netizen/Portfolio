@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Atom, Leaf, Server, Braces, ArrowRight, ArrowDown, Download } from 'lucide-react';
-import { profile, socials } from '../config';
+import { profile as defaultProfile, socials as defaultSocials } from '../config';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
+import { useContent } from '../content/ContentContext';
 import { Magnetic } from './Magnetic';
+import { Terminal } from './Terminal';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -22,6 +24,17 @@ const particles = Array.from({ length: 18 }, (_, i) => ({
   char: ['< />', '{ }', '()', '=>', 'M', 'R', '</>', '&&'][i % 8],
 }));
 
+// Ambient floating lights — small, slow, random drift, react to mouse slightly.
+const lights = Array.from({ length: 12 }, (_, i) => ({
+  left: `${(i * 79 + 23) % 100}%`,
+  top: `${(i * 53 + 11) % 92}%`,
+  size: 3 + ((i * 7) % 5),
+  duration: `${9 + (i % 5) * 2.4}s`,
+  delay: `${(i % 7) * 1.1}s`,
+  depth: 0.6 + ((i * 3) % 10) / 10, // parallax depth
+  opacity: 0.14 + ((i * 5) % 10) / 100,
+}));
+
 function isTouchDevice() {
   return (
     typeof window !== 'undefined' &&
@@ -32,11 +45,16 @@ function isTouchDevice() {
 export function Hero() {
   const reduced = usePrefersReducedMotion();
   const heroRef = useRef(null);
+  const lightsRef = useRef(null);
   const raf = useRef(0);
+  const { content } = useContent();
+  const profile = content.profile || defaultProfile;
+  const socials = content.socials || defaultSocials;
 
   useEffect(() => {
     if (reduced || isTouchDevice()) return;
     const el = heroRef.current;
+    const lightsEl = lightsRef.current;
     if (!el) return;
     const onMove = (e) => {
       cancelAnimationFrame(raf.current);
@@ -46,6 +64,10 @@ export function Hero() {
         const y = (e.clientY - r.top) / r.height;
         el.style.setProperty('--hx', x.toFixed(3));
         el.style.setProperty('--hy', y.toFixed(3));
+        if (lightsEl) {
+          lightsEl.style.setProperty('--lx', `${((x - 0.5) * 30).toFixed(2)}px`);
+          lightsEl.style.setProperty('--ly', `${((y - 0.5) * 22).toFixed(2)}px`);
+        }
       });
     };
     window.addEventListener('mousemove', onMove, { passive: true });
@@ -68,6 +90,29 @@ export function Hero() {
 
   return (
     <section id="home" aria-label="Introduction">
+      <div className="hero-bg" aria-hidden="true">
+        <div className="hero-grid-persp" />
+        <div className="hero-radial-light" />
+        <div ref={lightsRef} className="hero-lights">
+          {lights.map((l, i) => (
+            <span
+              key={i}
+              className="hero-light"
+              style={{
+                left: l.left,
+                top: l.top,
+                width: l.size,
+                height: l.size,
+                animationDuration: l.duration,
+                animationDelay: l.delay,
+                opacity: l.opacity,
+                '--depth': l.depth,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
       <div className="container hero" ref={heroRef}>
         <div className="hero-glow" aria-hidden="true" />
 
@@ -75,7 +120,7 @@ export function Hero() {
           <motion.div variants={fadeUp} initial={reduced ? 'show' : 'hidden'} animate="show" custom={0}>
             <span className="hero-badge">
               <span className="pulse-dot" aria-hidden="true" />
-              Available for opportunities
+              {profile.availability}
             </span>
           </motion.div>
 
@@ -173,16 +218,8 @@ export function Hero() {
             <span className="ring r3" />
           </div>
 
-          <div className="hero-core">
-            <pre className="core-code">
-              <span className="t-const">const</span> dev = <span className="g">{'{'}</span>
-              {'\n'}
-              {'  '}stack: <span className="s">'MERN'</span>,
-              {'\n'}
-              {'  '}build: <span className="s">'web apps'</span>
-              {'\n'}
-              <span className="g">{'};'}</span>
-            </pre>
+          <div className="hero-terminal-wrap">
+            <Terminal />
           </div>
 
           {floats.map(({ className, icon: Icon, label }) => (

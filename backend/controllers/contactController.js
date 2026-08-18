@@ -92,3 +92,25 @@ export async function getContactMessages(req, res) {
     res.status(500).json({ success: false, message: 'Failed to load messages.' });
   }
 }
+
+export async function deleteContactMessage(req, res) {
+  if (mongoose.connection.readyState !== 1) {
+    return res
+      .status(503)
+      .json({ success: false, message: 'MongoDB is not connected.' });
+  }
+  try {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid message id.' });
+    }
+    const deleted = await ContactMessage.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Message not found.' });
+    }
+    res.json({ success: true, message: 'Message deleted.', data: deleted });
+  } catch (error) {
+    console.error('[contact] Failed to delete message:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to delete message.' });
+  }
+}

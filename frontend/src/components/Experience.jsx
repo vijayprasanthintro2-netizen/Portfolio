@@ -1,15 +1,21 @@
 import { Briefcase, Calendar, Building2, CheckCircle2 } from 'lucide-react';
-import { profile } from '../config';
+import { profile as defaultProfile } from '../config';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
+import { useContent } from '../content/ContentContext';
+
+const defaultTags = ['MongoDB', 'Express.js', 'REST APIs', 'API Integration'];
 
 export function Experience() {
-  const { internship } = profile;
+  const { content } = useContent();
+  const { internship } = content.profile || defaultProfile;
+  const tags = internship.tags || defaultTags;
 
   return (
     <section id="experience" aria-label="Experience">
       <div className="container">
         <SectionHeading
+          number={5}
           kicker="Experience"
           title="Where I've applied my skills"
           sub="Real-world experience building and testing full-stack applications."
@@ -46,10 +52,11 @@ export function Experience() {
                 </div>
 
                 <div className="timeline-tags" aria-label="Technologies used during the internship">
-                  <span className="chip">MongoDB</span>
-                  <span className="chip">Express.js</span>
-                  <span className="chip">REST APIs</span>
-                  <span className="chip">API Integration</span>
+                  {tags.map((tag) => (
+                    <span className="chip" key={tag}>
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               </div>
             </article>

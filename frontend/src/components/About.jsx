@@ -1,9 +1,13 @@
 import { GraduationCap, Code2, Server, Sparkles } from 'lucide-react';
-import { profile } from '../config';
-import { SectionHeading } from './SectionHeading';
+import { profile as defaultProfile } from '../config';
+import { SectionIndex } from './SectionIndex';
+import { AnimatedHeadline } from './AnimatedHeadline';
 import { Reveal } from './Reveal';
+import { Terminal } from './Terminal';
+import { useContent } from '../content/ContentContext';
+import { aboutIcon } from '../content/iconMap';
 
-const aboutCards = [
+const defaultAboutCards = [
   {
     icon: GraduationCap,
     title: 'BCA Student',
@@ -26,51 +30,62 @@ const aboutCards = [
   },
 ];
 
-const stats = [
+const defaultStats = [
   { value: '2+', label: 'Real Projects' },
   { value: '1', label: 'Internship' },
   { value: 'MERN', label: 'Stack' },
   { value: 'All', label: 'Responsive Web Apps' },
 ];
 
-const terminalLines = [
-  { key: 'name', text: `name: "${profile.shortName}"` },
-  { key: 'role', text: `role: "${profile.role.toLowerCase()}"` },
-  { key: 'focus', text: `focus: "full-stack web development"` },
-  { key: 'education', text: `education: "${profile.education.short}"` },
-  { key: 'stack', text: `stack: [mongodb, express, react, node]` },
-  { key: 'projects', text: `projects: [vijaycart, weather-app]` },
+const defaultHeadline = [
+  { text: 'I build scalable web' },
+  { text: 'experiences with' },
+  { text: 'modern technologies.', gradient: true },
 ];
 
+const defaultSub = 'My path from learning the web to building complete MERN applications.';
+
 export function About() {
+  const { content } = useContent();
+  const profile = content.profile || defaultProfile;
+  const about = content.about || {};
+  const cards = about.cards || defaultAboutCards;
+  const stats = about.stats || defaultStats;
+  const headline = about.headline || defaultHeadline;
+  const sub = about.sub || defaultSub;
+
+  const aboutScript = [
+    {
+      id: 'profile',
+      command: 'vijay.profile',
+      output: [
+        `name: "${profile.shortName}"`,
+        `role: "${profile.role}"`,
+        `focus: "Full-stack web development"`,
+        `education: "${profile.education.short}"`,
+        `stack: [mongodb, express, react, node]`,
+        `projects: [${Array.isArray(content.projects) ? content.projects.map((p) => p.id).join(', ') : 'vijaycart, weather-app'}]`,
+      ],
+    },
+    {
+      id: 'status',
+      command: 'status',
+      output: [`"${profile.availability}"`],
+    },
+  ];
+
   return (
     <section id="about" aria-label="About me">
       <div className="container">
-        <SectionHeading
-          kicker="About Me"
-          title="A student turning ideas into full-stack products"
-          sub="My path from learning the web to building complete MERN applications."
-        />
+        <SectionIndex number="01" kicker="About Me" />
+
+        <AnimatedHeadline lines={headline} />
+        <p className="section-sub about-sub">{sub}</p>
 
         <div className="about-grid">
           <Reveal>
             <div className="about-visual">
-              <div className="about-terminal">
-                {terminalLines.map((line, i) => (
-                  <div key={line.key} className="term-line" style={{ animationDelay: `${0.4 + i * 0.35}s` }}>
-                    <span className="t-prompt">$ </span>
-                    <span className="t-const">vijay</span>
-                    <span>.profile</span>
-                    <span className="t-key">.{line.key}</span> = {line.text}
-                  </div>
-                ))}
-                <div className="term-line" style={{ animationDelay: `${0.4 + terminalLines.length * 0.35}s` }}>
-                  <span className="t-prompt">$ </span>
-                  <span className="t-const">status</span>
-                  <span>: </span>
-                  <span className="t-str">"open to internships and opportunities"</span>
-                </div>
-              </div>
+              <Terminal script={aboutScript} title="vijay@about: ~" typingDelay={30} outputDelay={150} />
             </div>
           </Reveal>
 
@@ -95,17 +110,20 @@ export function About() {
             </div>
 
             <div className="about-cards">
-              {aboutCards.map((card, i) => (
-                <Reveal key={card.title} delay={(i % 2) + 1}>
-                  <div className="card about-card">
-                    <div className="about-icon">
-                      <card.icon aria-hidden="true" />
+              {cards.map((card, i) => {
+                const Icon = typeof card.icon === 'string' ? aboutIcon(card.icon) : card.icon;
+                return (
+                  <Reveal key={card.title} delay={(i % 2) + 1}>
+                    <div className="card about-card">
+                      <div className="about-icon">
+                        <Icon aria-hidden="true" />
+                      </div>
+                      <h3>{card.title}</h3>
+                      <p>{card.text}</p>
                     </div>
-                    <h3>{card.title}</h3>
-                    <p>{card.text}</p>
-                  </div>
-                </Reveal>
-              ))}
+                  </Reveal>
+                );
+              })}
             </div>
           </div>
         </div>

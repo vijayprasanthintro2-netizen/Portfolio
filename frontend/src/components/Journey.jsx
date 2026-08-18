@@ -1,12 +1,16 @@
-import { journey } from '../data/journey';
+import { journey as defaultJourney } from '../data/journey';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
+import { useContent } from '../content/ContentContext';
 
 export function Journey() {
+  const { content } = useContent();
+  const journey = content.journey || defaultJourney;
   return (
     <section id="journey" aria-label="My learning journey">
       <div className="container">
         <SectionHeading
+          number={6}
           kicker="My Journey"
           title="My learning journey"
           sub="How I went from writing my first HTML tags to building full MERN applications."

@@ -1,6 +1,7 @@
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
-// Fixed ambient background: grid, gradient blobs, film grain. Respects reduced motion.
+// Fixed ambient background: grid, gradient blobs, film grain and a slow
+// scanline. Respects reduced motion.
 export function Backdrop() {
   const reduced = usePrefersReducedMotion();
 
@@ -16,6 +17,10 @@ export function Backdrop() {
         style={reduced ? undefined : { animation: 'blob-drift-2 26s ease-in-out infinite' }}
       />
       <div className="backdrop-blob b3" />
+      <div
+        className="backdrop-scanline"
+        style={reduced ? { animation: 'none' } : undefined}
+      />
       <div className="backdrop-noise" />
     </div>
   );

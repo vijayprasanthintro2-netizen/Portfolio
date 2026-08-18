@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X, ChevronRight } from 'lucide-react';
-import { navLinks, socials } from '../config';
+import { navLinks as defaultNav, socials as defaultSocials } from '../config';
 import { useActiveSection } from '../hooks/useActiveSection';
 import { LogoMark } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { Magnetic } from './Magnetic';
+import { useContent } from '../content/ContentContext';
 
 const githubPath =
   'M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.16c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.53-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 2.87-.39c.97 0 1.95.13 2.87.39 2.18-1.49 3.14-1.18 3.14-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.66.41.35.78 1.05.78 2.12v3.14c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z';
@@ -21,13 +22,32 @@ const mailIcon = (
 );
 
 export function Navbar({ theme, onToggleTheme }) {
-  const [scrolled, setScrolled] = useState(false);
+  const [phase, setPhase] = useState('top'); // 'top' | 'scrolled' | 'hidden'
   const [menuOpen, setMenuOpen] = useState(false);
-  const sectionIds = useMemo(() => navLinks.map((l) => l.id), []);
+  const { content } = useContent();
+  const navLinks = content.nav || defaultNav;
+  const socials = content.socials || defaultSocials;
+  const design = content.design;
+  const logoText = design?.logoText || 'vijay.';
+  const sectionIds = useMemo(() => navLinks.map((l) => l.id), [navLinks]);
   const active = useActiveSection(sectionIds);
+  const navLinksRef = useRef(null);
+  const lastY = useRef(0);
+
+  const [indicator, setIndicator] = useState({ left: 0, width: 0, visible: false });
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y <= 24) {
+        setPhase('top');
+      } else if (y > lastY.current && y > 360) {
+        setPhase('hidden');
+      } else {
+        setPhase('scrolled');
+      }
+      lastY.current = y;
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -40,6 +60,22 @@ export function Navbar({ theme, onToggleTheme }) {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    const nav = navLinksRef.current;
+    if (!nav) return;
+    const update = () => {
+      const el = nav.querySelector('.nav-link.active');
+      if (!el) {
+        setIndicator((i) => ({ ...i, visible: false }));
+        return;
+      }
+      setIndicator({ left: el.offsetLeft, width: el.offsetWidth, visible: true });
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [active]);
+
   const goTo = (id) => {
     setMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -47,16 +83,22 @@ export function Navbar({ theme, onToggleTheme }) {
 
   return (
     <>
-      <header className={`navbar${scrolled ? ' scrolled' : ''}`}>
+      <header className={`navbar phase-${phase}`}>
         <div className="container navbar-inner">
           <button className="nav-logo" onClick={() => goTo('home')} aria-label="Back to top">
             <LogoMark size={30} />
             <span>
-              vijay<span className="gradient-text">.</span>
+              {logoText.replace(/\.$/, '')}
+              {logoText.endsWith('.') && <span className="gradient-text">.</span>}
             </span>
           </button>
 
-          <nav className="nav-links" aria-label="Primary">
+          <nav className="nav-links" aria-label="Primary" ref={navLinksRef}>
+            <span
+              className="nav-indicator"
+              style={{ left: indicator.left, width: indicator.width, opacity: indicator.visible ? 1 : 0 }}
+              aria-hidden="true"
+            />
             {navLinks.map((link) => (
               <a
                 key={link.id}

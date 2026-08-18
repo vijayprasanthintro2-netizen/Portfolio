@@ -2,8 +2,10 @@ import { MonitorSmartphone, Layers, Plug2, ShoppingCart } from 'lucide-react';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
 import { SpotlightCard } from './SpotlightCard';
+import { useContent } from '../content/ContentContext';
+import { buildIcon } from '../content/iconMap';
 
-const builds = [
+const defaultBuilds = [
   {
     icon: MonitorSmartphone,
     title: 'Responsive Web Applications',
@@ -27,27 +29,34 @@ const builds = [
 ];
 
 export function BuildSection() {
+  const { content } = useContent();
+  const builds = content.build || defaultBuilds;
+
   return (
     <section id="build" aria-label="What I can build">
       <div className="container">
         <SectionHeading
+          number={8}
           kicker="What I Can Build"
           title="Things I can build for you"
           sub="Practical, real skills — applied to projects that solve problems."
         />
 
         <div className="build-grid">
-          {builds.map((item, i) => (
-            <Reveal key={item.title} delay={(i % 2) + 1}>
-              <SpotlightCard className="card build-card">
-                <div className="build-icon">
-                  <item.icon aria-hidden="true" />
-                </div>
-                <h3>{item.title}</h3>
-                <p>{item.desc}</p>
-              </SpotlightCard>
-            </Reveal>
-          ))}
+          {builds.map((item, i) => {
+            const Icon = typeof item.icon === 'string' ? buildIcon(item.icon) : item.icon;
+            return (
+              <Reveal key={item.title || i} delay={(i % 2) + 1}>
+                <SpotlightCard className="card build-card">
+                  <div className="build-icon">
+                    <Icon aria-hidden="true" />
+                  </div>
+                  <h3>{item.title}</h3>
+                  <p>{item.desc}</p>
+                </SpotlightCard>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>

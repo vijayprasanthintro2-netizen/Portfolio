@@ -14,6 +14,11 @@ export const env = {
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
   },
+  admin: {
+    username: process.env.ADMIN_USERNAME || 'admin',
+    password: process.env.ADMIN_PASSWORD || '',
+    jwtSecret: process.env.JWT_SECRET || '',
+  },
 };
 
 export const isSmtpConfigured = () =>

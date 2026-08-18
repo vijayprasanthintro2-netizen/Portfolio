@@ -1,7 +1,55 @@
+
+> vijayprasanth-portfolio-backend@1.0.0 dev
+> nodemon server.js
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node server.js`[39m
 [db] MongoDB connected: localhost
 [server] Portfolio API running on http://localhost:5000
 [server] CORS origin: http://localhost:5173
-[0mPOST /api/contact [32m201[0m 84.628 ms - 104[0m
-[0mGET /api/health [32m200[0m 1.058 ms - 54[0m
-[0mPOST /api/contact [32m201[0m 4.040 ms - 104[0m
-[0mPOST /api/contact [33m400[0m 0.335 ms - 65[0m
+[0mPOST /api/admin/login [32m200[0m 139.365 ms - 243[0m
+[0mPOST /api/admin/login [32m200[0m 162.069 ms - 243[0m
+[0mGET /api/content [32m200[0m 9.057 ms - 29[0m
+[0mGET /api/admin/content/profile [33m404[0m 0.923 ms - 77[0m
+[0mPUT /api/admin/content/profile [33m404[0m 1.179 ms - 77[0m
+[0mGET /api/content [32m200[0m 5.349 ms - 29[0m
+[0mPOST /api/admin/login [32m200[0m 104.645 ms - 243[0m
+[0mGET /api/content/profile [32m200[0m 9.105 ms - 1948[0m
+[0mPUT /api/content/profile [32m200[0m 30.128 ms - 1952[0m
+[0mGET /api/content [32m200[0m 9.079 ms - 1947[0m
+[0mGET /api/content/profile [33m401[0m 0.568 ms - 63[0m
+[0mPOST /api/admin/login [32m200[0m 89.929 ms - 243[0m
+[0mDELETE /api/content/profile [32m200[0m 12.348 ms - 1948[0m
+[0mGET /api/content [32m200[0m 2.309 ms - 29[0m
+[0mPOST /api/admin/login [32m200[0m 80.435 ms - 243[0m
+[0mGET /api/content/tech [32m200[0m 1.891 ms - 183[0m
+[0mPUT /api/content/tech [32m200[0m 2.532 ms - 190[0m
+[0mGET /api/content [32m200[0m 1.777 ms - 185[0m
+[0mDELETE /api/content/tech [32m200[0m 2.009 ms - 183[0m
+[0mGET /api/content [32m200[0m 2.459 ms - 29[0m
+[0mGET /api/content [36m304[0m 1.884 ms - -[0m
+[0mGET /api/content [36m304[0m 3.917 ms - -[0m
+[0mGET /api/content [36m304[0m 2.670 ms - -[0m
+[0mPOST /api/admin/login [32m200[0m 162.253 ms - 243[0m
+[0mGET /api/content/design [32m200[0m 4.396 ms - 466[0m
+[0mPUT /api/content/design [32m200[0m 5.579 ms - 466[0m
+[0mGET /api/content [32m200[0m 7.431 ms - 461[0m
+[0mDELETE /api/content/design [32m200[0m 3.297 ms - 466[0m
+[0mGET /api/content [36m304[0m 2.819 ms - -[0m
+[0mGET /api/content [36m304[0m 2.917 ms - -[0m
+[0mGET /api/content [36m304[0m 5.364 ms - -[0m
+[0mGET /api/content [36m304[0m 2.907 ms - -[0m
+[0mGET /api/content [36m304[0m 5.350 ms - -[0m
+[0mGET /api/content [36m304[0m 1.653 ms - -[0m
+[0mGET /api/content [36m304[0m 4.166 ms - -[0m
+[0mGET /api/content [36m304[0m 1.778 ms - -[0m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+[db] MongoDB connected: localhost
+[31m[nodemon] app crashed - waiting for file changes before starting...[39m

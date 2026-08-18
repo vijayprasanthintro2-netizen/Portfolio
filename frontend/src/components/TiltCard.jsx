@@ -19,9 +19,13 @@ export function TiltCard({ children, className = '', max = 5, lift = 6, ...rest 
       const py = (e.clientY - rect.top) / rect.height;
       el.style.setProperty('--mx', `${px * 100}%`);
       el.style.setProperty('--my', `${py * 100}%`);
+      el.style.setProperty('--par-x', `${(0.5 - px).toFixed(3)}`);
+      el.style.setProperty('--par-y', `${(0.5 - py).toFixed(3)}`);
       el.style.setProperty('--rx', `${(0.5 - py) * max}deg`);
       el.style.setProperty('--ry', `${(px - 0.5) * max}deg`);
       el.style.setProperty('--lift', `${lift}px`);
+      el.style.setProperty('--dx', `${(px - 0.5) * 22}px`);
+      el.style.setProperty('--dy', `${(py - 0.5) * 14}px`);
       el.style.transition = 'none';
     });
   };
@@ -34,6 +38,8 @@ export function TiltCard({ children, className = '', max = 5, lift = 6, ...rest 
     el.style.setProperty('--rx', '0deg');
     el.style.setProperty('--ry', '0deg');
     el.style.setProperty('--lift', '0px');
+    el.style.setProperty('--par-x', '0');
+    el.style.setProperty('--par-y', '0');
   };
 
   return (

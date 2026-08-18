@@ -27,9 +27,11 @@ function getState(target) {
   if (target.closest('a[href^="http"], a[href^="mailto"], a[href^="tel"], .social-link, .contact-link'))
     return 'link';
 
+  // Project cards — larger circular indicator with a "VIEW" label
+  if (target.closest('.project-card')) return 'project';
+
   // Project media, cards and any interactive element — plain button state
-  if (target.closest('a, button, input, textarea, select, [role="button"], .project-card'))
-    return 'button';
+  if (target.closest('a, button, input, textarea, select, [role="button"]')) return 'button';
 
   // Skill cards — magnetic glowing ring
   if (target.closest('.skill-card')) return 'skill';
@@ -52,13 +54,14 @@ function getState(target) {
 }
 
 const STATE_META = {
-  default: { scale: 1, dot: 1, orb: 1, arrow: false, mag: false },
-  energy: { scale: 1.2, dot: 1.05, orb: 1.35, arrow: false, mag: false },
-  link: { scale: 1.5, dot: 1.2, orb: 0.5, arrow: true, mag: true },
-  button: { scale: 1.8, dot: 1.5, orb: 0.35, arrow: true, mag: true },
-  skill: { scale: 1.3, dot: 1.05, orb: 0.7, arrow: false, mag: true },
-  timeline: { scale: 1.25, dot: 1, orb: 0, arrow: false, mag: false },
-  text: { scale: 0.85, dot: 0.4, orb: 0, arrow: false, mag: false },
+  default: { scale: 1, dot: 1, orb: 1, arrow: false, mag: false, label: '' },
+  energy: { scale: 1.2, dot: 1.05, orb: 1.35, arrow: false, mag: false, label: '' },
+  link: { scale: 1.5, dot: 1.2, orb: 0.5, arrow: true, mag: true, label: '' },
+  button: { scale: 1.8, dot: 1.5, orb: 0.35, arrow: true, mag: true, label: '' },
+  project: { scale: 2.1, dot: 0.4, orb: 0, arrow: false, mag: true, label: 'VIEW' },
+  skill: { scale: 1.3, dot: 1.05, orb: 0.7, arrow: false, mag: true, label: '' },
+  timeline: { scale: 1.25, dot: 1, orb: 0, arrow: false, mag: false, label: '' },
+  text: { scale: 0.85, dot: 0.4, orb: 0, arrow: false, mag: false, label: '' },
 };
 
 export function CustomCursor() {
@@ -69,6 +72,7 @@ export function CustomCursor() {
   const ringRef = useRef(null);
   const arrowRef = useRef(null);
   const spotRef = useRef(null);
+  const labelRef = useRef(null);
   const orbiterRefs = useRef([]);
   const stateRef = useRef('default');
   const magnet = useRef(null);
@@ -107,11 +111,18 @@ export function CustomCursor() {
       if (arrowRef.current) {
         arrowRef.current.style.display = meta.arrow ? 'block' : 'none';
       }
+      if (labelRef.current) {
+        labelRef.current.style.display = meta.label ? 'block' : 'none';
+        if (meta.label) labelRef.current.textContent = meta.label;
+      }
     };
 
     const readTarget = (e) => {
       const state = getState(e.target);
       applyState(state);
+      if (state === 'project' && labelRef.current) {
+        labelRef.current.textContent = e.target.closest('.project-featured') ? 'OPEN' : 'VIEW';
+      }
       const meta = STATE_META[state] || STATE_META.default;
       if (meta.mag) {
         const el =
@@ -213,6 +224,9 @@ export function CustomCursor() {
       if (arrowRef.current) {
         arrowRef.current.style.transform = `translate3d(${c.x}px, ${c.y}px, 0) translate(-50%, -50%)`;
       }
+      if (labelRef.current) {
+        labelRef.current.style.transform = `translate3d(${c.x}px, ${c.y}px, 0) translate(-50%, -50%)`;
+      }
       if (spotRef.current) {
         spotRef.current.style.transform = `translate3d(${c.sx}px, ${c.sy}px, 0) translate(-50%, -50%)`;
       }
@@ -287,6 +301,7 @@ export function CustomCursor() {
           <path d="m9 18 6-6-6-6" />
         </svg>
       </span>
+      <span ref={labelRef} className="cursor-label" style={{ display: 'none' }} />
       <div ref={dotRef} className="cursor-dot" />
     </div>
   );

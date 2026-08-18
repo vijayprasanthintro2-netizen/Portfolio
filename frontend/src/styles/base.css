@@ -11,6 +11,12 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--nav-height) + 12px);
   -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+html,
+body {
+  max-width: 100%;
 }
 
 body {
@@ -58,7 +64,7 @@ ol {
 }
 
 ::selection {
-  background: rgba(124, 92, 255, 0.35);
+  background: rgba(59, 130, 246, 0.38);
   color: #fff;
 }
 
@@ -156,6 +162,18 @@ section {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+}
+
+.gradient-blue {
+  background: var(--grad-blue);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.mono {
+  font-family: var(--font-mono);
 }
 
 /* Hide the native cursor while the custom cursor is active (fine pointers only) */

@@ -1,15 +1,17 @@
 import { GraduationCap, Calendar, MapPin } from 'lucide-react';
-import { profile } from '../config';
+import { profile as defaultProfile } from '../config';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
+import { useContent } from '../content/ContentContext';
 
 export function Education() {
-  const edu = profile.education;
+  const { content } = useContent();
+  const edu = (content.profile || defaultProfile).education;
 
   return (
     <section id="education" aria-label="Education">
       <div className="container">
-        <SectionHeading kicker="Education" title="Academic background" />
+        <SectionHeading number={7} kicker="Education" title="Academic background" />
 
         <Reveal>
           <div className="card education-card">

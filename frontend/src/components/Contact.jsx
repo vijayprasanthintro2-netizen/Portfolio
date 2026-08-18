@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Mail, Github, Linkedin, Phone, Send, CheckCircle2, AlertCircle } from 'lucide-react';
-import { profile, socials, api } from '../config';
+import { profile as defaultProfile, socials as defaultSocials, api } from '../config';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
 import { Magnetic } from './Magnetic';
+import { useContent } from '../content/ContentContext';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -25,6 +26,9 @@ export function Contact() {
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState(null); // 'sending' | 'sent' | 'error'
   const [errorMsg, setErrorMsg] = useState('');
+  const { content } = useContent();
+  const profile = content.profile || defaultProfile;
+  const socials = content.socials || defaultSocials;
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -63,9 +67,12 @@ export function Contact() {
     <section id="contact" aria-label="Contact">
       <div className="container">
         <SectionHeading
+          number={10}
           kicker="Contact"
           title="Let's Build Something Great"
           sub="Have a project in mind, an opportunity to share, or just want to say hello? My inbox is always open."
+          animate
+          highlight={['Something', 'Great']}
         />
 
         <div className="contact-grid">
