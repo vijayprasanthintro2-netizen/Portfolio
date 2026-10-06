@@ -12,6 +12,14 @@ export function AdminLogin({ onSuccess }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    let notice = '';
+    try {
+      notice = sessionStorage.getItem('vp-admin-notice') || '';
+      sessionStorage.removeItem('vp-admin-notice');
+    } catch {
+      /* ignore */
+    }
+    if (notice) setError(notice);
     const onKey = (e) => {
       if (e.key === 'Escape') setError('');
     };

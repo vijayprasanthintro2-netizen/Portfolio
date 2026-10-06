@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Github, Rocket, ExternalLink, Star, Info } from 'lucide-react';
+import { Github, Rocket, ExternalLink, Star, Info, Image as ImageIcon } from 'lucide-react';
 import { projects as defaultProjects } from '../data/projects';
 import { SectionHeading } from './SectionHeading';
 import { Reveal } from './Reveal';
 import { SpotlightCard } from './SpotlightCard';
 import { ProjectModal } from './ProjectModal';
+import { ProjectLightbox } from './ProjectLightbox';
 import { Magnetic } from './Magnetic';
-import { TiltCard } from './TiltCard';
 import { useContent } from '../content/ContentContext';
 
-function CardButtons({ project, onDetails }) {
+function CardButtons({ project, onDetails, onImage }) {
   return (
     <div className="project-actions">
       {project.demo ? (
@@ -43,12 +43,33 @@ function CardButtons({ project, onDetails }) {
           View Details
         </button>
       </Magnetic>
+      <Magnetic>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => onImage(project)}>
+          <ImageIcon className="btn-icon" aria-hidden="true" />
+          Show Image
+        </button>
+      </Magnetic>
+    </div>
+  );
+}
+
+function ProjectHead({ project }) {
+  return (
+    <div className="project-head">
+      {project.featured && (
+        <span className="featured-badge">
+          <Star size={13} aria-hidden="true" />
+          Featured
+        </span>
+      )}
+      <span className="project-role">{project.role}</span>
     </div>
   );
 }
 
 export function Projects() {
   const [selected, setSelected] = useState(null);
+  const [imageFor, setImageFor] = useState(null);
   const { content } = useContent();
   const projects = content.projects || defaultProjects;
 
@@ -69,16 +90,8 @@ export function Projects() {
           <Reveal key={project.id}>
             <SpotlightCard className="project-card project-featured">
               <article className="project-featured-inner">
-                <TiltCard className="project-media" max={3} lift={4}>
-                  <span className="project-media-tag">{project.role}</span>
-                  <span className="featured-badge">
-                    <Star size={13} aria-hidden="true" />
-                    Featured
-                  </span>
-                  <img src={project.image} alt={project.alt} loading="eager" width={720} height={450} />
-                </TiltCard>
-
                 <div className="project-body">
+                  <ProjectHead project={project} />
                   <h3 className="project-title">{project.name}</h3>
                   <p className="project-desc">{project.short}</p>
 
@@ -99,7 +112,7 @@ export function Projects() {
                     ))}
                   </div>
 
-                  <CardButtons project={project} onDetails={setSelected} />
+                  <CardButtons project={project} onDetails={setSelected} onImage={setImageFor} />
                 </div>
               </article>
             </SpotlightCard>
@@ -111,18 +124,8 @@ export function Projects() {
             <Reveal key={project.id} delay={(i % 2) + 1}>
               <SpotlightCard className="project-card">
                 <article>
-                  <TiltCard className="project-media" max={3} lift={4}>
-                    <span className="project-media-tag">{project.role}</span>
-                    <img
-                      src={project.image}
-                      alt={project.alt}
-                      loading="lazy"
-                      width={720}
-                      height={450}
-                    />
-                  </TiltCard>
-
                   <div className="project-body">
+                    <ProjectHead project={project} />
                     <h3 className="project-title">{project.name}</h3>
                     <p className="project-desc">{project.short}</p>
 
@@ -135,7 +138,7 @@ export function Projects() {
                       ))}
                     </div>
 
-                    <CardButtons project={project} onDetails={setSelected} />
+                    <CardButtons project={project} onDetails={setSelected} onImage={setImageFor} />
                   </div>
                 </article>
               </SpotlightCard>
@@ -145,6 +148,7 @@ export function Projects() {
       </div>
 
       <ProjectModal project={selected} onClose={() => setSelected(null)} />
+      <ProjectLightbox project={imageFor} onClose={() => setImageFor(null)} />
     </section>
   );
 }

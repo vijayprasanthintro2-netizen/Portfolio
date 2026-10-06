@@ -38,7 +38,7 @@ export const projects = [
       'Planning an admin dashboard for product and order management.',
       'Managing authentication state and shipping a responsive storefront.',
     ],
-    image: '/projects/vijaycart-preview.svg',
+    image: '',
     alt: 'UI concept preview of the VijayCart e-commerce storefront',
     github: 'https://github.com/vijayprasanthintro/vijaycart',
     demo: 'https://vijaycart-snowy.vercel.app',
@@ -68,7 +68,7 @@ export const projects = [
       'Working with third-party APIs and asynchronous JavaScript.',
       'Building a polished single-page interface around live data.',
     ],
-    image: '/projects/weather-app-preview.svg',
+    image: '',
     alt: 'UI concept preview of the Weather App interface',
     github: 'https://github.com/vijayprasanthintro/weather',
     demo: null, // No confirmed live URL for the Weather App — kept honest.

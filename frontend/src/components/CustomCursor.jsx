@@ -127,7 +127,7 @@ export function CustomCursor() {
       if (meta.mag) {
         const el =
           e.target.closest(
-            'a, button, input, textarea, select, .project-card, .skill-card, .repo-card, .project-media'
+            'a, button, input, textarea, select, .project-card, .skill-card, .repo-card'
           ) || e.target;
         if (el && typeof el.getBoundingClientRect === 'function') {
           const r = el.getBoundingClientRect();

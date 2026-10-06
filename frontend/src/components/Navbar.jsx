@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X, ChevronRight } from 'lucide-react';
 import { navLinks as defaultNav, socials as defaultSocials } from '../config';
 import { useActiveSection } from '../hooks/useActiveSection';
-import { LogoMark } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { Magnetic } from './Magnetic';
 import { useContent } from '../content/ContentContext';
@@ -86,7 +85,6 @@ export function Navbar({ theme, onToggleTheme }) {
       <header className={`navbar phase-${phase}`}>
         <div className="container navbar-inner">
           <button className="nav-logo" onClick={() => goTo('home')} aria-label="Back to top">
-            <LogoMark size={30} />
             <span>
               {logoText.replace(/\.$/, '')}
               {logoText.endsWith('.') && <span className="gradient-text">.</span>}

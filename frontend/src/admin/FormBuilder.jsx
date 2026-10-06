@@ -1,4 +1,6 @@
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Upload, Image as ImageIcon } from 'lucide-react';
+import { fileToDataUrl } from './imageFile';
 
 function clone(value) {
   return Array.isArray(value) ? [...value] : value && typeof value === 'object' ? { ...value } : value;
@@ -110,6 +112,73 @@ export function Fields({ fields, value = {}, onChange }) {
   );
 }
 
+function ImageField({ label, hint, value, onChange }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+
+  const onPick = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ''; // allow re-picking the same file later
+    if (!file) return;
+    setError('');
+    setBusy(true);
+    try {
+      onChange(await fileToDataUrl(file));
+    } catch (err) {
+      setError(err.message || 'Could not read that image.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="af-field af-field-image">
+      <label className="af-label">
+        {label}
+        {hint && <span className="af-hint">{hint}</span>}
+      </label>
+      <div className="af-image">
+        <div className={`af-image-preview${value ? ' has-image' : ''}`}>
+          {value ? (
+            <img src={value} alt={label} />
+          ) : (
+            <span className="af-image-empty">
+              <ImageIcon size={22} aria-hidden="true" />
+              No image yet
+            </span>
+          )}
+          {busy && <span className="af-image-busy">Processing…</span>}
+        </div>
+
+        <div className="af-image-actions">
+          <button type="button" className="af-add" onClick={() => inputRef.current?.click()} disabled={busy}>
+            <Upload size={14} aria-hidden="true" />
+            {value ? 'Replace image' : 'Choose image'}
+          </button>
+          {value && (
+            <button
+              type="button"
+              className="af-icon-btn danger"
+              onClick={() => {
+                setError('');
+                onChange('');
+              }}
+              title="Remove image"
+              aria-label="Remove image"
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+          <input ref={inputRef} type="file" accept="image/*" hidden onChange={onPick} />
+        </div>
+
+        {error && <p className="af-image-error">{error}</p>}
+      </div>
+    </div>
+  );
+}
+
 function Field({ field, value, onChange }) {
   const { label, type, hint } = field;
 
@@ -163,6 +232,8 @@ function Field({ field, value, onChange }) {
           </div>
         </div>
       );
+    case 'image':
+      return <ImageField label={field.label} hint={field.hint} value={value || ''} onChange={onChange} />;
     case 'strings':
       return (
         <div className="af-field">

@@ -15,6 +15,9 @@ export const profile = {
   ],
   location: 'Tiruchengode, Tamil Nadu, India',
   availability: 'Open to internships and opportunities',
+  // profile photo for the hero — '' means no photo yet,
+  // or upload one from Admin > Profile (it's stored in MongoDB)
+  image: '',
   // Set this to a file placed in frontend/public (e.g. '/Vijayprasanth-Resume.pdf')
   // to enable the "Download Resume" button in the hero.
   resume: '/Vijayprasanth-Resume.pdf',

@@ -129,5 +129,9 @@ and a subtle **Admin** link is available in the public site's footer.
 
 - Only real information is shown: VijayCart (live + GitHub) and the Weather App (GitHub).
   No fake projects, URLs or percentages.
-- The project preview images are labelled UI-concept illustrations, not screenshots.
+- Project images and the hero profile photo are managed from the admin panel
+  (Admin → **Projects** / **Profile**): choose an image, preview it, replace or
+  remove it, then press **Save**. Images are compressed in the browser and saved
+  with the section content in MongoDB — no extra storage or env vars needed.
+  Cards and the details modal show a placeholder when no image is set.
 - Nothing is pushed to GitHub — you manage Git/GitHub manually.

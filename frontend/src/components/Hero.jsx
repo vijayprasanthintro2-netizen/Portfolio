@@ -117,6 +117,31 @@ export function Hero() {
         <div className="hero-glow" aria-hidden="true" />
 
         <div className="hero-content">
+          {profile.image && (
+            <motion.div
+              className="hero-avatar-wrap"
+              variants={fadeUp}
+              initial={reduced ? 'show' : 'hidden'}
+              animate="show"
+              custom={0}
+            >
+              <span className="hero-avatar">
+                <img
+                  src={profile.image}
+                  alt={`${profile.name} profile`}
+                  width={148}
+                  height={148}
+                  loading="eager"
+                  decoding="async"
+                  onError={(e) => {
+                    const wrap = e.currentTarget.closest('.hero-avatar-wrap');
+                    if (wrap) wrap.style.display = 'none';
+                  }}
+                />
+              </span>
+            </motion.div>
+          )}
+
           <motion.div variants={fadeUp} initial={reduced ? 'show' : 'hidden'} animate="show" custom={0}>
             <span className="hero-badge">
               <span className="pulse-dot" aria-hidden="true" />

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 import { Magnetic } from './Magnetic';
+import { ProjectImage } from './ProjectImage';
 
 export function ProjectModal({ project, onClose }) {
   const reduced = usePrefersReducedMotion();
@@ -55,13 +56,11 @@ export function ProjectModal({ project, onClose }) {
               <X size={22} aria-hidden="true" />
             </button>
 
-            <div className="modal-hero">
-              <span className="project-media-tag">{project.role}</span>
-              <img src={project.image} alt={project.alt} width={720} height={450} />
-            </div>
-
             <div className="modal-body">
-              <h3 className="modal-title">{project.name}</h3>
+              <div className="modal-heading">
+                <h3 className="modal-title">{project.name}</h3>
+                <p className="modal-role">{project.role}</p>
+              </div>
               <p className="modal-desc">{project.description}</p>
 
               <div className="modal-block">
@@ -74,6 +73,10 @@ export function ProjectModal({ project, onClose }) {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              <div className="modal-image-box">
+                <ProjectImage project={project} width={960} height={540} />
               </div>
 
               <div className="modal-block">

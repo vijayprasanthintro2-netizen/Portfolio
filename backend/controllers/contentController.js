@@ -1,6 +1,19 @@
 import Content from '../models/Content.js';
 import { defaultContent, sectionKeys } from '../config/defaultContent.js';
 
+// images get stored as base64 strings, drop any single image that's
+// way too big before it's written to the db
+const MAX_IMAGE_CHARS = 4 * 1024 * 1024; // ~4MB of base64 text
+
+function hasOversizedImage(value) {
+  if (typeof value === 'string') {
+    return value.startsWith('data:image/') && value.length > MAX_IMAGE_CHARS;
+  }
+  if (Array.isArray(value)) return value.some(hasOversizedImage);
+  if (value && typeof value === 'object') return Object.values(value).some(hasOversizedImage);
+  return false;
+}
+
 // Public: returns every stored section as { sectionKey: data }.
 export async function getPublicContent(req, res) {
   try {
@@ -43,6 +56,12 @@ export async function saveSection(req, res) {
   }
   if (data === undefined || data === null) {
     return res.status(400).json({ success: false, message: 'No data provided.' });
+  }
+  if (hasOversizedImage(data)) {
+    return res.status(413).json({
+      success: false,
+      message: 'Image is too large. Please upload a smaller image (max ~3MB).',
+    });
   }
 
   try {

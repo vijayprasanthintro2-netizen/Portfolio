@@ -292,6 +292,15 @@ export function AdminShell({ onLogout }) {
       })
       .catch((err) => {
         if (cancelled) return;
+        if (err.status === 401) {
+          try {
+            sessionStorage.setItem('vp-admin-notice', 'Your session has expired — please sign in again.');
+          } catch {
+            /* ignore */
+          }
+          onLogout();
+          return;
+        }
         setDraft(null);
         setReady(true);
         toast(err.message || 'Could not load section.', 'error');
@@ -299,7 +308,7 @@ export function AdminShell({ onLogout }) {
     return () => {
       cancelled = true;
     };
-  }, [activeKey, meta]);
+  }, [activeKey, meta, onLogout]);
 
   // Live preview for the design section while editing; restore the saved
   // design (or token defaults) when leaving the design editor.

@@ -21,7 +21,7 @@ import {
 //  strings -> the data is a plain array of strings
 
 // Field types (used inside object / records):
-//  text, textarea, number, toggle, color, strings, list (nested records)
+//  text, textarea, number, toggle, color, strings, image, list (nested records)
 
 const text = (key, label, opts = {}) => ({ key, label, type: 'text', ...opts });
 const area = (key, label, opts = {}) => ({ key, label, type: 'textarea', ...opts });
@@ -29,6 +29,7 @@ const number = (key, label, opts = {}) => ({ key, label, type: 'number', ...opts
 const toggle = (key, label, opts = {}) => ({ key, label, type: 'toggle', ...opts });
 const color = (key, label, opts = {}) => ({ key, label, type: 'color', ...opts });
 const stringsField = (key, label, opts = {}) => ({ key, label, type: 'strings', ...opts });
+const imageField = (key, label, opts = {}) => ({ key, label, type: 'image', ...opts });
 const recordList = (key, label, fields, opts = {}) => ({ key, label, type: 'list', fields, ...opts });
 const object = (key, label, fields) => ({ key, label, type: 'object', fields });
 
@@ -69,6 +70,9 @@ export const sections = {
       stringsField('about', 'About paragraphs'),
       text('location', 'Location'),
       text('availability', 'Availability'),
+      imageField('image', 'Profile photo', {
+        hint: 'Shown in the hero. Press Save to publish — replace or remove it any time.',
+      }),
       text('resume', 'Resume file path', { hint: 'Path inside frontend/public, e.g. /Vijayprasanth-Resume.pdf' }),
       object('education', 'Education', [
         text('degree', 'Degree'),
@@ -171,7 +175,9 @@ export const sections = {
       stringsField('features', 'Key features'),
       stringsField('challenges', 'Challenges'),
       stringsField('learned', 'What I learned'),
-      text('image', 'Image path'),
+      imageField('image', 'Project image', {
+        hint: 'Shown on the card and in View Details. Press Save to publish.',
+      }),
       text('alt', 'Image alt text'),
       text('github', 'GitHub URL'),
       text('demo', 'Live demo URL', { hint: 'Leave blank if there is no live URL' }),
