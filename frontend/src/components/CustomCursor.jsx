@@ -88,6 +88,7 @@ export function CustomCursor() {
   const clearTrail = useRef([]);
   const raf = useRef(0);
   const active = useRef(false);
+  const magnetEl = useRef(null);
 
   useEffect(() => {
     if (!isFinePointer()) return;
@@ -132,13 +133,18 @@ export function CustomCursor() {
           e.target.closest(
             'a, button, input, textarea, select, .project-card, .skill-card, .repo-card'
           ) || e.target;
-        if (el && typeof el.getBoundingClientRect === 'function') {
+        // mouseover also fires for every child inside the same button/card.
+        // Measuring once per target avoids repeated forced layout reads.
+        if (el && el !== magnetEl.current && typeof el.getBoundingClientRect === 'function') {
+          magnetEl.current = el;
           const r = el.getBoundingClientRect();
           magnet.current = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-        } else {
+        } else if (!el) {
+          magnetEl.current = null;
           magnet.current = null;
         }
       } else {
+        magnetEl.current = null;
         magnet.current = null;
       }
     };
@@ -191,8 +197,14 @@ export function CustomCursor() {
       root.classList.remove('cursor-active');
       active.current = false;
     };
+    const invalidateMagnet = () => {
+      magnetEl.current = null;
+      magnet.current = null;
+    };
 
     document.addEventListener('mouseover', onOver, { passive: true });
+    window.addEventListener('scroll', invalidateMagnet, { passive: true });
+    window.addEventListener('resize', invalidateMagnet);
     window.addEventListener('mousedown', onDown, { passive: true });
     window.addEventListener('mouseup', onUp, { passive: true });
     window.addEventListener('mousemove', onMove, { passive: true });
@@ -231,15 +243,17 @@ export function CustomCursor() {
         ty += (dy / dist) * pull;
       }
 
-      c.x += (tx - c.x) * 0.16;
-      c.y += (ty - c.y) * 0.16;
-      c.scale += (meta.scale - c.scale) * 0.16;
-      c.dot += (meta.dot - c.dot) * 0.18;
-      c.orb += (meta.orb - c.orb) * 0.12;
+      // Keep the ring close to the physical pointer. The old 0.16 easing
+      // needed ~600 ms to settle after a fast move, which felt like lag.
+      c.x += (tx - c.x) * 0.55;
+      c.y += (ty - c.y) * 0.55;
+      c.scale += (meta.scale - c.scale) * 0.4;
+      c.dot += (meta.dot - c.dot) * 0.4;
+      c.orb += (meta.orb - c.orb) * 0.3;
 
-      // The spotlight lags more for a soft ambient feel.
-      c.sx += (p.x - c.sx) * 0.07;
-      c.sy += (p.y - c.sy) * 0.07;
+      // The ambient spotlight stays softer, but no longer drags behind.
+      c.sx += (p.x - c.sx) * 0.2;
+      c.sy += (p.y - c.sy) * 0.2;
 
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%) scale(${c.dot})`;
@@ -296,6 +310,8 @@ export function CustomCursor() {
     return () => {
       document.documentElement.classList.remove('vpc-cursor');
       document.removeEventListener('mouseover', onOver);
+      window.removeEventListener('scroll', invalidateMagnet);
+      window.removeEventListener('resize', invalidateMagnet);
       window.removeEventListener('mousedown', onDown);
       window.removeEventListener('mouseup', onUp);
       window.removeEventListener('mousemove', onMove);

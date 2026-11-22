@@ -273,6 +273,16 @@
   .modal-body {
     padding: 24px 20px 26px;
   }
+
+  .modal-image-box {
+    aspect-ratio: 16 / 10;
+  }
+
+  .modal-image-box .project-media-placeholder-icon {
+    width: 88px;
+    height: 68px;
+    border-radius: 13px;
+  }
 }
 
 /* ---------- Mobile performance ----------

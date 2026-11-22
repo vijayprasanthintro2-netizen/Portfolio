@@ -29,6 +29,28 @@ function isImageDataUrl(value) {
   return typeof value === 'string' && /^data:image\/[a-z0-9.+-]+;base64,/i.test(value);
 }
 
+// Older saves stored list sections as numeric-key objects. Turn them back into
+// ordered arrays everywhere (public API, admin editor and saves) so no records
+// are lost and array operations cannot crash the UI.
+export function normalizeSectionData(section, data) {
+  const expected = defaultContent[section];
+  if (!Array.isArray(expected)) return data;
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== 'object') return data;
+
+  const keys = Object.keys(data);
+  if (!keys.length || !keys.every((key) => /^\d+$/.test(key))) return data;
+  return keys
+    .sort((a, b) => Number(a) - Number(b))
+    .map((key) => data[key]);
+}
+
+function recordSegment(item, index) {
+  const raw = item && typeof item === 'object' ? item.id || item._id || '' : '';
+  const clean = String(raw).replace(/[^\w-]/g, '');
+  return clean && SEGMENT_RE.test(clean) ? clean : String(index);
+}
+
 // Walk stored data and swap base64 images for small, separately cacheable URLs.
 // The assets map keeps the original data urls keyed by the generated path so the
 // asset route can stream them as real images with far-future cache headers.
@@ -40,7 +62,7 @@ function publicize(data, section, version, assets, path = [section]) {
     return url;
   }
   if (Array.isArray(data)) {
-    return data.map((item, i) => publicize(item, section, version, assets, [...path, i]));
+    return data.map((item, i) => publicize(item, section, version, assets, [...path, recordSegment(item, i)]));
   }
   if (data && typeof data === 'object') {
     const out = {};
@@ -56,6 +78,14 @@ function getValueAtPath(data, segments) {
   let current = data;
   for (const segment of segments) {
     if (current == null || typeof current !== 'object') return null;
+    if (Array.isArray(current) && !/^\d+$/.test(segment)) {
+      const index = current.findIndex(
+        (item) => item && (String(item.id) === segment || String(item._id) === segment)
+      );
+      if (index === -1) return null;
+      current = current[index];
+      continue;
+    }
     current = current[/^\d+$/.test(segment) ? Number(segment) : segment];
   }
   return current;
@@ -82,7 +112,8 @@ export async function getPublicContent(req, res) {
 
     for (const doc of docs) {
       const version = doc.updatedAt ? new Date(doc.updatedAt).getTime() : 0;
-      sections[doc.section] = publicize(doc.data, doc.section, version, assets);
+      const data = normalizeSectionData(doc.section, doc.data);
+      sections[doc.section] = publicize(data, doc.section, version, assets);
     }
 
     const body = { success: true, content: sections };
@@ -106,13 +137,14 @@ export async function getAsset(req, res) {
   }
 
   try {
-    let dataUrl = null;
-    if (publicCache?.assets.has(assetPath)) {
-      dataUrl = publicCache.assets.get(assetPath);
-    } else {
-      const doc = await Content.findOne({ section: segments[0] }).select('data').lean();
-      if (doc) dataUrl = getValueAtPath(doc.data, segments.slice(1));
-    }
+    // Read the current document every time. Asset paths use the record id, so
+    // even an older cached `?v=` should keep showing that record's image rather
+    // than breaking after a later save somewhere else in the CMS.
+    const doc = await Content.findOne({ section: segments[0] }).select('data').lean();
+    if (!doc) return res.status(404).json({ success: false, message: 'Asset not found.' });
+
+    const storedData = normalizeSectionData(segments[0], doc.data);
+    const dataUrl = getValueAtPath(storedData, segments.slice(1));
 
     if (!isImageDataUrl(dataUrl)) {
       return res.status(404).json({ success: false, message: 'Asset not found.' });
@@ -145,7 +177,7 @@ export async function getSection(req, res) {
     return res.json({
       success: true,
       section,
-      data: doc ? doc.data : defaultContent[section],
+      data: normalizeSectionData(section, doc ? doc.data : defaultContent[section]),
     });
   } catch (err) {
     console.error('[content] getSection error:', err);
@@ -163,7 +195,9 @@ export async function saveSection(req, res) {
   if (data === undefined || data === null) {
     return res.status(400).json({ success: false, message: 'No data provided.' });
   }
-  if (hasOversizedImage(data)) {
+
+  const nextData = normalizeSectionData(section, data);
+  if (hasOversizedImage(nextData)) {
     return res.status(413).json({
       success: false,
       message: 'Image is too large. Please upload a smaller image (max ~3MB).',
@@ -174,19 +208,19 @@ export async function saveSection(req, res) {
     // Object editors only render their declared fields. Keep any extra
     // server-managed keys (e.g. profile.resumeMeta) so a normal Hero save
     // cannot silently detach the uploaded resume file.
-    const nextData = { ...data };
-    if (defaultContent[section] && !Array.isArray(defaultContent[section])) {
+    const mergedData = Array.isArray(nextData) ? nextData : { ...nextData };
+    if (!Array.isArray(nextData) && defaultContent[section] && !Array.isArray(defaultContent[section])) {
       const existing = await Content.findOne({ section }).select('data').lean();
       if (existing?.data && typeof existing.data === 'object') {
         for (const [key, value] of Object.entries(existing.data)) {
-          if (!(key in nextData)) nextData[key] = value;
+          if (!(key in mergedData)) mergedData[key] = value;
         }
       }
     }
 
     const doc = await Content.findOneAndUpdate(
       { section },
-      { section, data: nextData, updatedBy: req.adminName || 'admin' },
+      { section, data: mergedData, updatedBy: req.adminName || 'admin' },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     ).lean();
     invalidateCache();

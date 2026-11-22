@@ -11,6 +11,20 @@
     <meta name="author" content="Vijayprasanth S" />
     <meta name="theme-color" content="#070a14" />
 
+    <!-- Apply the saved admin theme before any UI renders. Only two themes exist;
+         an unset preference opens the admin panel in light mode. -->
+    <script>
+      try {
+        var savedAdminTheme = localStorage.getItem('vp-admin-theme');
+        document.documentElement.setAttribute(
+          'data-admin-theme',
+          savedAdminTheme === 'dark' || savedAdminTheme === 'light' ? savedAdminTheme : 'light'
+        );
+      } catch (error) {
+        document.documentElement.setAttribute('data-admin-theme', 'light');
+      }
+    </script>
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Vijayprasanth S | MERN Stack Developer" />

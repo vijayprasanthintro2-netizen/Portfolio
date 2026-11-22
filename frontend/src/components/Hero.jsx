@@ -77,6 +77,9 @@ export function Hero() {
   const heroRef = useRef(null);
   const lightsRef = useRef(null);
   const raf = useRef(0);
+  const measureRaf = useRef(0);
+  const heroBox = useRef(null);
+  const heroVisible = useRef(true);
   const { content } = useContent();
   const profile = content.profile || defaultProfile;
   const socials = content.socials || defaultSocials;
@@ -151,12 +154,45 @@ export function Hero() {
     const el = heroRef.current;
     const lightsEl = lightsRef.current;
     if (!el) return;
+
+    // Measure only when layout can change. Reading the hero rectangle inside
+    // every mousemove forced a reflow after the previous frame's CSS variable
+    // writes and made the whole page's pointer interactions feel sticky.
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      heroBox.current = { left: r.left, top: r.top, width: r.width, height: r.height };
+    };
+    const onScroll = () => {
+      if (measureRaf.current) return;
+      measureRaf.current = requestAnimationFrame(() => {
+        measureRaf.current = 0;
+        measure();
+      });
+    };
+    const onResize = () => measure();
+    measure();
+
+    const observer =
+      typeof IntersectionObserver === 'undefined'
+        ? null
+        : new IntersectionObserver(
+            ([entry]) => {
+              heroVisible.current = entry.isIntersecting;
+            },
+            { rootMargin: '100px' }
+          );
+    observer?.observe(el);
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+
     const onMove = (e) => {
+      const box = heroBox.current;
+      if (!heroVisible.current || !box || !box.width || !box.height) return;
       cancelAnimationFrame(raf.current);
       raf.current = requestAnimationFrame(() => {
-        const r = el.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width;
-        const y = (e.clientY - r.top) / r.height;
+        const x = (e.clientX - box.left) / box.width;
+        const y = (e.clientY - box.top) / box.height;
         el.style.setProperty('--hx', x.toFixed(3));
         el.style.setProperty('--hy', y.toFixed(3));
         if (lightsEl) {
@@ -168,7 +204,11 @@ export function Hero() {
     window.addEventListener('mousemove', onMove, { passive: true });
     return () => {
       window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      observer?.disconnect();
       cancelAnimationFrame(raf.current);
+      cancelAnimationFrame(measureRaf.current);
     };
   }, [reduced]);
 

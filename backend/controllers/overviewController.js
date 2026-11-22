@@ -1,6 +1,7 @@
 import Content from '../models/Content.js';
 import ContactMessage from '../models/ContactMessage.js';
 import { defaultContent } from '../config/defaultContent.js';
+import { normalizeSectionData } from './contentController.js';
 import { dbReady, findAssetByKey, assetUrl } from '../config/gridfs.js';
 
 const LABELS = {
@@ -21,7 +22,8 @@ const LABELS = {
 };
 
 function sectionData(map, key) {
-  return map[key]?.data ?? defaultContent[key] ?? null;
+  const data = map[key]?.data ?? defaultContent[key] ?? null;
+  return normalizeSectionData(key, data);
 }
 
 export async function getOverview(req, res) {

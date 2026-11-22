@@ -6,6 +6,12 @@ export function SpotlightCard({ children, className = '' }) {
   const ref = useRef(null);
   const raf = useRef(0);
   const point = useRef({ x: 0, y: 0 });
+  const rectCache = useRef(null);
+
+  const onEnter = useCallback((e) => {
+    if (e.pointerType !== 'mouse') return;
+    if (ref.current) rectCache.current = ref.current.getBoundingClientRect();
+  }, []);
 
   const onMove = useCallback((e) => {
     if (e.pointerType !== 'mouse') return;
@@ -16,7 +22,8 @@ export function SpotlightCard({ children, className = '' }) {
       raf.current = 0;
       const el = ref.current;
       if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const rect = rectCache.current || el.getBoundingClientRect();
+      rectCache.current = rect;
       const x = point.current.x - rect.left;
       const y = point.current.y - rect.top;
       el.style.setProperty('--mouse-x', `${x}px`);
@@ -26,15 +33,21 @@ export function SpotlightCard({ children, className = '' }) {
     });
   }, []);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const invalidate = () => {
+      rectCache.current = null;
+    };
+    window.addEventListener('scroll', invalidate, { passive: true });
+    window.addEventListener('resize', invalidate);
+    return () => {
+      window.removeEventListener('scroll', invalidate);
+      window.removeEventListener('resize', invalidate);
       if (raf.current) cancelAnimationFrame(raf.current);
-    },
-    []
-  );
+    };
+  }, []);
 
   return (
-    <div ref={ref} onPointerMove={onMove} className={`spotlight-card ${className}`.trim()}>
+    <div ref={ref} onPointerEnter={onEnter} onPointerMove={onMove} className={`spotlight-card ${className}`.trim()}>
       {children}
     </div>
   );

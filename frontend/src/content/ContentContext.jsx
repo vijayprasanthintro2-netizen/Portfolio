@@ -1,10 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../config';
+import { resolveAssetUrls } from './assetUrl';
 
 const ContentContext = createContext(null);
-const ASSET_PREFIX = '/api/content/asset/';
-const FILE_ASSET_PREFIX = '/api/assets/';
-const API_PREFIX = '/api/';
 
 export function hexToRgba(hex, alpha) {
   let h = String(hex || '').replace('#', '').trim();
@@ -65,32 +63,6 @@ export function applyDesign(design) {
     root.style.setProperty('--radius-lg', `${Math.round(r * 1.5)}px`);
     root.style.setProperty('--radius-xl', `${Math.round(r * 2)}px`);
   }
-}
-
-// Asset URLs come back relative to `/api`; point them at the configured API
-// base so a separately-hosted backend works too.
-function resolveAssetUrls(value) {
-  if (typeof value === 'string') {
-    // Stored URLs already start with `/api`. Avoid turning them into
-    // `/api/api/...` when the frontend uses the default proxy base URL.
-    if (value.startsWith(ASSET_PREFIX)) {
-      return `${api.baseUrl}/content/asset/${value.slice(ASSET_PREFIX.length)}`;
-    }
-    if (value.startsWith(FILE_ASSET_PREFIX)) {
-      return `${api.baseUrl}/assets/${value.slice(FILE_ASSET_PREFIX.length)}`;
-    }
-    if (value.startsWith(API_PREFIX) && api.baseUrl !== '/api') {
-      return `${api.baseUrl.replace(/\/$/, '')}/${value.slice(API_PREFIX.length)}`;
-    }
-    return value;
-  }
-  if (Array.isArray(value)) return value.map(resolveAssetUrls);
-  if (value && typeof value === 'object') {
-    const out = {};
-    for (const [key, item] of Object.entries(value)) out[key] = resolveAssetUrls(item);
-    return out;
-  }
-  return value;
 }
 
 export function ContentProvider({ children }) {

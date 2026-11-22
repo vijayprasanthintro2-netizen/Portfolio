@@ -21,6 +21,7 @@ export function Magnetic({ children, strength = 10, max = 7, className = '' }) {
   const target = useRef({ x: 0, y: 0 });
   const current = useRef({ x: 0, y: 0 });
   const hovering = useRef(false);
+  const rectCache = useRef(null);
 
   const stopLoop = useCallback(() => {
     if (raf.current) {
@@ -56,7 +57,10 @@ export function Magnetic({ children, strength = 10, max = 7, className = '' }) {
       if (e.pointerType !== 'mouse' || reduced) return;
       const el = ref.current;
       if (!el) return;
-      const rect = el.getBoundingClientRect();
+      // Measure on enter (and after scroll/resize) instead of on every move:
+      // reading layout after the previous frame's transform forces a reflow.
+      const rect = rectCache.current || el.getBoundingClientRect();
+      rectCache.current = rect;
       const dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
       const dy = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
       target.current.x = clamp(dx, -1, 1) * strength;
@@ -70,7 +74,10 @@ export function Magnetic({ children, strength = 10, max = 7, className = '' }) {
   const onEnter = useCallback(
     (e) => {
       if (e.pointerType !== 'mouse' || reduced) return;
-      if (ref.current) ref.current.style.transition = 'none';
+      if (ref.current) {
+        rectCache.current = ref.current.getBoundingClientRect();
+        ref.current.style.transition = 'none';
+      }
     },
     [reduced]
   );
@@ -78,10 +85,23 @@ export function Magnetic({ children, strength = 10, max = 7, className = '' }) {
   const onLeave = useCallback(() => {
     if (reduced) return;
     hovering.current = false;
+    rectCache.current = null;
     target.current = { x: 0, y: 0 };
     if (ref.current) ref.current.style.transition = 'transform 0.5s var(--ease-out)';
     startLoop();
   }, [reduced, startLoop]);
+
+  useEffect(() => {
+    const invalidate = () => {
+      rectCache.current = null;
+    };
+    window.addEventListener('scroll', invalidate, { passive: true });
+    window.addEventListener('resize', invalidate);
+    return () => {
+      window.removeEventListener('scroll', invalidate);
+      window.removeEventListener('resize', invalidate);
+    };
+  }, []);
 
   // Never leave an animation frame running after unmount.
   useEffect(() => stopLoop, [stopLoop]);

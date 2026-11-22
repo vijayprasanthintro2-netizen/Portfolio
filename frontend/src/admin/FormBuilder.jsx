@@ -1,6 +1,21 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Upload, Image as ImageIcon } from 'lucide-react';
 import { fileToDataUrl } from './imageFile';
+import { adminReplaceAsset, adminUploadAsset } from '../content/api';
+import { resolveAssetUrl } from '../content/assetUrl';
+import { normalizeSectionValue } from '../content/shape';
+
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+function assetKeyFromUrl(value) {
+  const match = String(value || '').match(/\/api\/assets\/k\/([^?]+)/);
+  if (!match) return '';
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
 
 function clone(value) {
   return Array.isArray(value) ? [...value] : value && typeof value === 'object' ? { ...value } : value;
@@ -73,6 +88,7 @@ function RecordListEditor({
     fields.forEach((f) => {
       seed[f.key] = f.type === 'toggle' ? false : f.type === 'number' ? 0 : f.type === 'strings' ? [] : f.type === 'list' ? [] : '';
     });
+    setQuery('');
     onChange([...items, seed]);
   };
 
@@ -92,7 +108,7 @@ function RecordListEditor({
         <p className="af-search-empty">No records match “{query}”.</p>
       )}
       {visible.map(({ item, index: i }) => (
-        <div className="af-record" key={i}>
+        <div className="af-record" key={`${item?.id || item?.name || 'record'}-${i}`}>
           <div className="af-record-head">
             <span className="af-record-index">{String(i + 1).padStart(2, '0')}</span>
             <span className="af-record-title">
@@ -138,25 +154,53 @@ export function Fields({ fields, value = {}, onChange }) {
   );
 }
 
-function ImageField({ label, hint, value, onChange }) {
+function ImageField({ label, hint, value, onChange, assetUpload = false }) {
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
+  const [previewError, setPreviewError] = useState('');
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    setPreviewError('');
+  }, [value]);
 
   const onPick = async (e) => {
     const file = e.target.files && e.target.files[0];
     e.target.value = ''; // allow re-picking the same file later
     if (!file) return;
+
     setError('');
+    setPreviewError('');
+    setProgress(0);
     setBusy(true);
+
     try {
-      onChange(await fileToDataUrl(file));
+      if (file.size > MAX_IMAGE_BYTES) {
+        throw new Error('Images must be 10 MB or smaller.');
+      }
+      if (file.type && !file.type.startsWith('image/')) {
+        throw new Error('Choose a PNG, JPG, WebP, GIF or SVG image.');
+      }
+
+      if (assetUpload) {
+        const existingKey = assetKeyFromUrl(value);
+        const res = existingKey
+          ? await adminReplaceAsset(existingKey, file, setProgress)
+          : await adminUploadAsset(file, { kind: 'image', onProgress: setProgress });
+        onChange(res.data.url);
+      } else {
+        onChange(await fileToDataUrl(file));
+      }
     } catch (err) {
-      setError(err.message || 'Could not read that image.');
+      setError(err.message || 'Could not upload that image.');
     } finally {
       setBusy(false);
+      setProgress(0);
     }
   };
+
+  const previewSrc = resolveAssetUrl(value);
 
   return (
     <div className="af-field af-field-image">
@@ -167,20 +211,28 @@ function ImageField({ label, hint, value, onChange }) {
       <div className="af-image">
         <div className={`af-image-preview${value ? ' has-image' : ''}`}>
           {value ? (
-            <img src={value} alt={label} />
+            <img
+              src={previewSrc}
+              alt={label}
+              onError={() => setPreviewError('This image could not be loaded. Upload a replacement to fix it.')}
+            />
           ) : (
             <span className="af-image-empty">
               <ImageIcon size={22} aria-hidden="true" />
               No image yet
             </span>
           )}
-          {busy && <span className="af-image-busy">Processing…</span>}
+          {busy && (
+            <span className="af-image-busy">
+              {progress > 0 && progress < 100 ? `Uploading ${progress}%` : 'Processing…'}
+            </span>
+          )}
         </div>
 
         <div className="af-image-actions">
           <button type="button" className="af-add" onClick={() => inputRef.current?.click()} disabled={busy}>
             <Upload size={14} aria-hidden="true" />
-            {value ? 'Replace image' : 'Choose image'}
+            {busy ? 'Uploading…' : value ? 'Replace image' : 'Choose image'}
           </button>
           {value && (
             <button
@@ -188,10 +240,12 @@ function ImageField({ label, hint, value, onChange }) {
               className="af-icon-btn danger"
               onClick={() => {
                 setError('');
+                setPreviewError('');
                 onChange('');
               }}
               title="Remove image"
               aria-label="Remove image"
+              disabled={busy}
             >
               <Trash2 size={15} />
             </button>
@@ -199,7 +253,7 @@ function ImageField({ label, hint, value, onChange }) {
           <input ref={inputRef} type="file" accept="image/*" hidden onChange={onPick} />
         </div>
 
-        {error && <p className="af-image-error">{error}</p>}
+        {(error || previewError) && <p className="af-image-error">{error || previewError}</p>}
       </div>
     </div>
   );
@@ -269,7 +323,15 @@ function Field({ field, value, onChange }) {
         </div>
       );
     case 'image':
-      return <ImageField label={field.label} hint={field.hint} value={value || ''} onChange={onChange} />;
+      return (
+        <ImageField
+          label={field.label}
+          hint={field.hint}
+          value={value || ''}
+          onChange={onChange}
+          assetUpload={Boolean(field.asset)}
+        />
+      );
     case 'strings':
       return (
         <div className="af-field">
@@ -318,20 +380,22 @@ function Field({ field, value, onChange }) {
 
 // Renders any section based on its meta (object / records / strings).
 export function SectionForm({ meta, value, onChange }) {
+  const safeValue = normalizeSectionValue(meta, value);
   if (meta.type === 'records') {
     return (
-      <RecordListEditor value={value} onChange={onChange} fields={meta.fields} addLabel={meta.addLabel} nameKey={meta.nameKey} />
+      <RecordListEditor value={safeValue} onChange={onChange} fields={meta.fields} addLabel={meta.addLabel} nameKey={meta.nameKey} />
     );
   }
   if (meta.type === 'strings') {
-    return <StringsEditor value={value} onChange={onChange} addLabel={meta.addLabel} />;
+    return <StringsEditor value={safeValue} onChange={onChange} addLabel={meta.addLabel} />;
   }
-  return <Fields fields={meta.schema} value={value} onChange={onChange} />;
+  return <Fields fields={meta.schema} value={safeValue} onChange={onChange} />;
 }
 
 // Client-side guard so a half-filled record can't be published by accident.
 export function validateSection(meta, data) {
   const errors = [];
+  if (data === undefined || data === null) return ['Section data is not available. Try reloading the page.'];
   const check = (fields, obj, prefix = '') => {
     fields.forEach((field) => {
       const label = prefix ? `${prefix} → ${field.label}` : field.label;

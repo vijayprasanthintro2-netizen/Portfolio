@@ -15,6 +15,8 @@ import { LogoMark } from '../components/Logo';
 import { useContent, applyDesign } from '../content/ContentContext';
 import { sectionNav, navGroups, sections, getSectionMeta } from './sections';
 import { SectionForm, validateSection } from './FormBuilder';
+import { readAdminTheme, applyAdminTheme, ADMIN_THEME_KEY } from './theme';
+import { normalizeSectionValue } from '../content/shape';
 import { Toast, ConfirmDialog } from './ui';
 import { Dashboard } from './Dashboard';
 import { ResumePage } from './ResumePage';
@@ -30,14 +32,6 @@ import {
 
 const CUSTOM_PAGES = ['resume', 'media', 'messages', 'settings'];
 
-function getTheme() {
-  try {
-    return window.localStorage.getItem('vp-admin-theme') === 'light' ? 'light' : 'dark';
-  } catch {
-    return 'dark';
-  }
-}
-
 export function AdminShell({ onLogout }) {
   const { content, status, refresh } = useContent();
   const [activeKey, setActiveKey] = useState(() => {
@@ -45,8 +39,9 @@ export function AdminShell({ onLogout }) {
     return match && sectionNav.some((s) => s.key === match[1]) ? match[1] : 'dashboard';
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [theme, setThemeState] = useState(getTheme);
+  const [theme, setThemeState] = useState(readAdminTheme);
   const [draft, setDraft] = useState(null);
+  const [loadError, setLoadError] = useState('');
   const [ready, setReady] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -62,14 +57,14 @@ export function AdminShell({ onLogout }) {
   const setTheme = useCallback((value) => {
     setThemeState(value);
     try {
-      window.localStorage.setItem('vp-admin-theme', value);
+      window.localStorage.setItem(ADMIN_THEME_KEY, value);
     } catch {
       /* ignore */
     }
   }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-admin-theme', theme);
+    applyAdminTheme(theme);
   }, [theme]);
 
   const toast = useCallback((message, kind = 'success') => {
@@ -140,21 +135,24 @@ export function AdminShell({ onLogout }) {
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  // Load a section only when its editor is open.
+  // Load a section only when its editor is open. Keeping callbacks stable
+  // prevents content refreshes from wiping a draft that is being edited.
   useEffect(() => {
     if (!meta) {
       setReady(true);
       setDraft(null);
+      setLoadError('');
       return undefined;
     }
     let cancelled = false;
     setReady(false);
     setDirty(false);
     setDraft(null);
+    setLoadError('');
     adminGetSection(activeKey)
       .then((res) => {
         if (!cancelled) {
-          setDraft(res.data || null);
+          setDraft(normalizeSectionValue(meta, res.data) ?? null);
           setReady(true);
         }
       })
@@ -165,6 +163,7 @@ export function AdminShell({ onLogout }) {
           return;
         }
         setDraft(null);
+        setLoadError(err.message || 'Could not load section.');
         setReady(true);
         toast(err.message || 'Could not load section.', 'error');
       });
@@ -206,7 +205,7 @@ export function AdminShell({ onLogout }) {
   const onReset = async () => {
     try {
       const res = await adminResetSection(activeKey);
-      setDraft(res.data || null);
+      setDraft(normalizeSectionValue(meta, res.data) ?? null);
       setDirty(true);
       toast('Section reset to defaults — press Publish to save.');
     } catch (err) {
@@ -241,6 +240,17 @@ export function AdminShell({ onLogout }) {
           <section className="ad-card ad-editor-card">
             {!ready ? (
               <div className="ad-loading"><span className="admin-spinner" /> Loading section…</div>
+            ) : loadError ? (
+              <div className="ad-load-error" role="alert">
+                <AlertCircle size={20} />
+                <div>
+                  <strong>Could not load this section.</strong>
+                  <p>{loadError}</p>
+                </div>
+                <button type="button" className="af-btn ghost" onClick={() => window.location.reload()}>
+                  Retry
+                </button>
+              </div>
             ) : (
               <SectionForm
                 meta={meta}
@@ -256,7 +266,7 @@ export function AdminShell({ onLogout }) {
           <div className="ad-editor-actions">
             <div className="ad-editor-actions-inner">
               {dirty && <span className="ad-unsaved"><AlertCircle size={15} /> Unsaved changes</span>}
-              <button type="button" className="af-btn ghost" onClick={onReset} disabled={saving || !ready}>
+              <button type="button" className="af-btn ghost" onClick={onReset} disabled={saving || !ready || loadError}>
                 <RotateCcw size={16} />
                 Reset
               </button>
@@ -264,7 +274,7 @@ export function AdminShell({ onLogout }) {
                 type="button"
                 className={`af-btn primary${dirty ? ' pulsing' : ''}`}
                 onClick={onSave}
-                disabled={saving || !ready}
+                disabled={saving || !ready || loadError || draft == null}
               >
                 {saving ? <span className="admin-spinner" /> : <Save size={16} />}
                 {saving ? 'Publishing…' : dirty ? 'Publish changes' : 'Save'}

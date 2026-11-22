@@ -224,7 +224,8 @@ export const sections = {
       stringsField('challenges', 'Challenges'),
       stringsField('learned', 'What I learned'),
       imageField('image', 'Project thumbnail', {
-        hint: 'Shown on the card and in View Details. Press Save to publish.',
+        hint: 'Uploaded to the media library with a stable URL. Shown only in View Details.',
+        asset: true,
       }),
       stringsField('screenshots', 'Screenshot URLs', {
         hint: 'Copy stable URLs from the Media Library.',

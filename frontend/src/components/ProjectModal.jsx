@@ -72,6 +72,10 @@ export function ProjectModal({ project, onClose }) {
             </button>
 
             <div className="modal-body">
+              <div className="modal-image-box">
+                <ProjectImage project={project} loading="eager" width={960} height={540} />
+              </div>
+
               <div className="modal-heading">
                 <h3 className="modal-title">{project.name}</h3>
                 <p className="modal-role">{project.role}</p>
@@ -88,10 +92,6 @@ export function ProjectModal({ project, onClose }) {
                     </span>
                   ))}
                 </div>
-              </div>
-
-              <div className="modal-image-box">
-                <ProjectImage project={project} width={960} height={540} />
               </div>
 
               {(project.problem || project.approach || project.outcome) && (
