@@ -3,58 +3,60 @@
    Loaded after admin.css so the new shell takes precedence.
    ============================================================ */
 
-:root[data-admin-theme='light'] {
-  --admin-bg: #f4f6fb;
+/* White is the admin default — applied even before a preference is saved.
+   The optional dark palette in admin.css applies only to dark. */
+:root:not([data-admin-theme='dark']) {
+  --admin-bg: #f8fafc;
   --admin-panel: #ffffff;
-  --admin-panel-2: #f8faff;
-  --admin-border: rgba(15, 23, 42, 0.1);
+  --admin-panel-2: #f8fafc;
+  --admin-border: #e2e8f0;
   --admin-text-1: #111827;
   --admin-text-2: #475569;
-  --admin-text-3: #7c869b;
+  --admin-text-3: #64748b;
   --admin-accent: #2563eb;
-  --admin-accent-2: #0284c7;
+  --admin-accent-2: #2563eb;
   --admin-success: #059669;
   --admin-danger: #dc2626;
-  --admin-grad: linear-gradient(135deg, #2563eb 0%, #3b82f6 45%, #38bdf8 100%);
+  --admin-grad: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
 }
 
-[data-admin-theme='light'] .admin-login {
+:root:not([data-admin-theme='dark']) .admin-login {
   background: radial-gradient(1000px 700px at 50% -10%, rgba(37, 99, 235, 0.14), transparent 60%), #f4f6fb;
 }
-[data-admin-theme='light'] .admin-login-card,
-[data-admin-theme='light'] .admin-login-input,
-[data-admin-theme='light'] .admin-login-submit {
+:root:not([data-admin-theme='dark']) .admin-login-card,
+:root:not([data-admin-theme='dark']) .admin-login-input {
   color: var(--admin-text-1);
 }
-[data-admin-theme='light'] .admin-login-card {
+:root:not([data-admin-theme='dark']) .admin-login-submit { color: #ffffff; }
+:root:not([data-admin-theme='dark']) .admin-login-card {
   background: #fff;
   box-shadow: 0 30px 70px rgba(15, 23, 42, 0.12);
 }
-[data-admin-theme='light'] .admin-login-input {
+:root:not([data-admin-theme='dark']) .admin-login-input {
   background: #f8fafc;
   border-color: var(--admin-border);
 }
-[data-admin-theme='light'] .admin-login-input input {
+:root:not([data-admin-theme='dark']) .admin-login-input input {
   color: var(--admin-text-1);
 }
-[data-admin-theme='light'] .admin-toast {
+:root:not([data-admin-theme='dark']) .admin-toast {
   background: #fff;
   box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
 }
-[data-admin-theme='light'] .admin-spinner {
+:root:not([data-admin-theme='dark']) .admin-spinner {
   border-color: rgba(15, 23, 42, 0.2);
   border-top-color: var(--admin-accent);
 }
-[data-admin-theme='light'] .af-input {
+:root:not([data-admin-theme='dark']) .af-input {
   background: #f8fafc;
   color: var(--admin-text-1);
 }
-[data-admin-theme='light'] .af-icon-btn,
-[data-admin-theme='light'] .af-add {
+:root:not([data-admin-theme='dark']) .af-icon-btn,
+:root:not([data-admin-theme='dark']) .af-add {
   color: var(--admin-text-2);
 }
-[data-admin-theme='light'] .af-record,
-[data-admin-theme='light'] .af-object {
+:root:not([data-admin-theme='dark']) .af-record,
+:root:not([data-admin-theme='dark']) .af-object {
   background: #f8fafc;
 }
 
@@ -69,6 +71,13 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   transition: background 0.25s ease, color 0.25s ease;
 }
+/* Admin headings must follow the admin theme, not the public site theme. */
+.ad-shell h1,
+.ad-shell h2,
+.ad-shell h3,
+.ad-shell h4 {
+  color: var(--admin-text-1);
+}
 
 .ad-sidebar {
   width: 268px;
@@ -80,7 +89,7 @@
   border-right: 1px solid var(--admin-border);
   z-index: 40;
 }
-[data-admin-theme='light'] .ad-sidebar {
+:root:not([data-admin-theme='dark']) .ad-sidebar {
   background: #fff;
 }
 
@@ -212,7 +221,7 @@
   background: var(--admin-panel-2);
   border-bottom: 1px solid var(--admin-border);
 }
-[data-admin-theme='light'] .ad-topbar { background: #fff; }
+:root:not([data-admin-theme='dark']) .ad-topbar { background: #fff; }
 .ad-topbar-leading {
   display: flex;
   align-items: center;
@@ -308,7 +317,7 @@
   background: linear-gradient(180deg, var(--admin-panel) 0%, var(--admin-panel-2) 100%);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18);
 }
-[data-admin-theme='light'] .ad-card { box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06); }
+:root:not([data-admin-theme='dark']) .ad-card { box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06); }
 .ad-card-head {
   display: flex;
   align-items: flex-start;
@@ -771,4 +780,260 @@
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ============================================================
+   Light admin contrast refinements.
+   These scoped overrides cover both the legacy admin.css selectors
+   and the newer .ad-* shell so every surface stays readable on white.
+   ============================================================ */
+
+/* Login */
+:root:not([data-admin-theme='dark']) .admin-login {
+  background: radial-gradient(1000px 700px at 50% -10%, rgba(37, 99, 235, 0.08), transparent 60%), #f8fafc;
+}
+:root:not([data-admin-theme='dark']) .admin-login-bg .a-grid {
+  background-image: linear-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+}
+:root:not([data-admin-theme='dark']) .admin-login-bg .a-blob { opacity: 0.12; }
+:root:not([data-admin-theme='dark']) .admin-login-card { border-color: #e2e8f0; }
+:root:not([data-admin-theme='dark']) .admin-login-error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+:root:not([data-admin-theme='dark']) .admin-login-label { color: #475569; }
+:root:not([data-admin-theme='dark']) .admin-login-input {
+  background: #fff;
+  border-color: #e2e8f0;
+}
+:root:not([data-admin-theme='dark']) .admin-login-input input::placeholder { color: #64748b; }
+:root:not([data-admin-theme='dark']) .admin-login-back { color: #475569; }
+
+/* Legacy admin shell and forms */
+:root:not([data-admin-theme='dark']) .admin-sidebar,
+:root:not([data-admin-theme='dark']) .admin-topbar {
+  background: #fff;
+}
+:root:not([data-admin-theme='dark']) .admin-nav-item:hover {
+  background: #f1f5f9;
+  color: #111827;
+}
+:root:not([data-admin-theme='dark']) .admin-nav-item.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  box-shadow: inset 0 0 0 1px #bfdbfe;
+}
+:root:not([data-admin-theme='dark']) .admin-topbar-user {
+  background: #f8fafc;
+  color: #475569;
+}
+:root:not([data-admin-theme='dark']) .admin-stat,
+:root:not([data-admin-theme='dark']) .admin-tile,
+:root:not([data-admin-theme='dark']) .admin-panel,
+:root:not([data-admin-theme='dark']) .admin-actions-inner,
+:root:not([data-admin-theme='dark']) .admin-msg,
+:root:not([data-admin-theme='dark']) .admin-toast {
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+:root:not([data-admin-theme='dark']) .admin-tile:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.09);
+}
+:root:not([data-admin-theme='dark']) .admin-tile-icon,
+:root:not([data-admin-theme='dark']) .admin-panel-icon,
+:root:not([data-admin-theme='dark']) .af-record-index {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+:root:not([data-admin-theme='dark']) .admin-badge.core,
+:root:not([data-admin-theme='dark']) .ad-badge.core {
+  background: #d1fae5;
+  color: #047857;
+}
+:root:not([data-admin-theme='dark']) .admin-badge.premium,
+:root:not([data-admin-theme='dark']) .ad-badge.premium {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+:root:not([data-admin-theme='dark']) .af-hint { opacity: 1; color: #475569; }
+:root:not([data-admin-theme='dark']) .af-input,
+:root:not([data-admin-theme='dark']) .af-color input[type='color'] {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #111827;
+}
+:root:not([data-admin-theme='dark']) .af-input::placeholder { color: #475569; opacity: 1; }
+:root:not([data-admin-theme='dark']) .af-input:focus {
+  background: #fff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+:root:not([data-admin-theme='dark']) .af-add {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+:root:not([data-admin-theme='dark']) .af-add:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+:root:not([data-admin-theme='dark']) .af-icon-btn,
+:root:not([data-admin-theme='dark']) .af-btn.ghost {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+:root:not([data-admin-theme='dark']) .af-icon-btn:hover,
+:root:not([data-admin-theme='dark']) .af-btn.ghost:hover {
+  background: #f8fafc;
+  color: #111827;
+}
+:root:not([data-admin-theme='dark']) .af-icon-btn.danger,
+:root:not([data-admin-theme='dark']) .af-btn.danger,
+:root:not([data-admin-theme='dark']) .af-btn.danger-ghost,
+:root:not([data-admin-theme='dark']) .af-image-error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+:root:not([data-admin-theme='dark']) .af-record,
+:root:not([data-admin-theme='dark']) .af-record-head,
+:root:not([data-admin-theme='dark']) .af-object { background: #f8fafc; }
+:root:not([data-admin-theme='dark']) .af-image-preview {
+  background-color: #f8fafc;
+  background-image: linear-gradient(rgba(37, 99, 235, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
+  border-color: #bfdbfe;
+}
+:root:not([data-admin-theme='dark']) .af-image-preview.has-image { background-color: #f8fafc; }
+:root:not([data-admin-theme='dark']) .af-image-busy {
+  color: #fff;
+  background: #2563eb;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.22);
+}
+:root:not([data-admin-theme='dark']) .af-toggle-track { background: #cbd5e1; }
+:root:not([data-admin-theme='dark']) .af-toggle-track::after { background: #fff; }
+:root:not([data-admin-theme='dark']) .af-btn.primary { color: #fff; box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18); }
+:root:not([data-admin-theme='dark']) .admin-spinner {
+  border-color: rgba(15, 23, 42, 0.16);
+  border-top-color: #2563eb;
+}
+
+/* Premium admin shell */
+:root:not([data-admin-theme='dark']) .ad-nav-item:hover {
+  background: #f1f5f9;
+  color: #111827;
+}
+:root:not([data-admin-theme='dark']) .ad-nav-item.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  box-shadow: inset 0 0 0 1px #bfdbfe;
+}
+:root:not([data-admin-theme='dark']) .ad-icon-btn,
+:root:not([data-admin-theme='dark']) .ad-search-top,
+:root:not([data-admin-theme='dark']) .ad-topbar-user,
+:root:not([data-admin-theme='dark']) .ad-quick,
+:root:not([data-admin-theme='dark']) .ad-search-field,
+:root:not([data-admin-theme='dark']) .ad-media-item,
+:root:not([data-admin-theme='dark']) .ad-media-thumb,
+:root:not([data-admin-theme='dark']) .ad-message,
+:root:not([data-admin-theme='dark']) .ad-message-detail-body {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+:root:not([data-admin-theme='dark']) .ad-card,
+:root:not([data-admin-theme='dark']) .ad-stat-card,
+:root:not([data-admin-theme='dark']) .ad-editor-actions-inner,
+:root:not([data-admin-theme='dark']) .ad-modal {
+  background: #fff;
+}
+:root:not([data-admin-theme='dark']) .ad-card,
+:root:not([data-admin-theme='dark']) .ad-stat-card {
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+}
+:root:not([data-admin-theme='dark']) .ad-editor-actions-inner {
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.09);
+}
+:root:not([data-admin-theme='dark']) .ad-modal {
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+}
+:root:not([data-admin-theme='dark']) .ad-modal-layer { background: rgba(15, 23, 42, 0.42); }
+:root:not([data-admin-theme='dark']) .ad-drawer-backdrop { background: rgba(15, 23, 42, 0.38); }
+:root:not([data-admin-theme='dark']) .ad-quick:hover { background: #eff6ff; border-color: #bfdbfe; }
+:root:not([data-admin-theme='dark']) .ad-empty-icon {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+:root:not([data-admin-theme='dark']) .ad-stat-icon,
+:root:not([data-admin-theme='dark']) .ad-resume-icon,
+:root:not([data-admin-theme='dark']) .ad-resume-big-icon,
+:root:not([data-admin-theme='dark']) .ad-drop-icon,
+:root:not([data-admin-theme='dark']) .ad-message-avatar {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+:root:not([data-admin-theme='dark']) .tone-cyan .ad-stat-icon { background: #eff6ff; color: #1d4ed8; }
+:root:not([data-admin-theme='dark']) .tone-violet .ad-stat-icon { background: #f5f3ff; color: #6d28d9; }
+:root:not([data-admin-theme='dark']) .tone-green .ad-stat-icon { background: #ecfdf5; color: #047857; }
+:root:not([data-admin-theme='dark']) .tone-amber .ad-stat-icon { background: #fffbeb; color: #b45309; }
+:root:not([data-admin-theme='dark']) .tone-rose .ad-stat-icon { background: #fef2f2; color: #b91c1c; }
+:root:not([data-admin-theme='dark']) .ad-status-dot { background: #dc2626; }
+:root:not([data-admin-theme='dark']) .ad-status-dot.uploaded,
+:root:not([data-admin-theme='dark']) .ad-status-dot.ready { background: #059669; }
+:root:not([data-admin-theme='dark']) .ad-status-dot.legacy { background: #b45309; }
+:root:not([data-admin-theme='dark']) .ad-pill {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+:root:not([data-admin-theme='dark']) .ad-pill.uploaded { background: #ecfdf5; color: #047857; }
+:root:not([data-admin-theme='dark']) .ad-pill.legacy { background: #fffbeb; color: #b45309; }
+:root:not([data-admin-theme='dark']) .ad-unsaved { color: #b45309; }
+:root:not([data-admin-theme='dark']) .ad-preview-strip {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+:root:not([data-admin-theme='dark']) .ad-storage-note {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+:root:not([data-admin-theme='dark']) .ad-message-avatar.read { background: #f1f5f9; color: #64748b; }
+:root:not([data-admin-theme='dark']) .ad-load-error,
+:root:not([data-admin-theme='dark']) .ad-inline-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+/* Settings */
+:root:not([data-admin-theme='dark']) .ad-theme-switch button {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+:root:not([data-admin-theme='dark']) .ad-theme-switch button.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+:root:not([data-admin-theme='dark']) .ad-session-note { color: #475569; }
+
+/* Settings spacing on compact screens (both themes) */
+@media (max-width: 640px) {
+  .ad-theme-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .ad-theme-switch button { width: 100%; justify-content: center; }
+  .ad-settings-form { max-width: none; }
+  .ad-session { gap: 16px; }
+  .ad-session div { min-width: 120px; }
+}
+
+@media (max-width: 380px) {
+  .ad-theme-switch { grid-template-columns: 1fr; }
 }

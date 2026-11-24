@@ -209,17 +209,6 @@
   }
 }
 
-@keyframes trail-fade {
-  0% {
-    transform: scale(1);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(0.2);
-    opacity: 0;
-  }
-}
-
 @keyframes particle-burst {
   0% {
     transform: translate3d(0, 0, 0) scale(1);
@@ -231,11 +220,59 @@
   }
 }
 
-/* ---------- Preloader boot ---------- */
-@keyframes boot-line {
+/* ---------- Premium VP boot ---------- */
+@keyframes vp-boot-ambient {
+  0% {
+    transform: translate3d(-1.5%, 1%, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(1.5%, -1%, 0) scale(1.06);
+  }
+}
+
+@keyframes vp-boot-grid {
+  to {
+    transform: translate3d(46px, 46px, 0);
+  }
+}
+
+@keyframes vp-boot-particle {
+  0%,
+  100% {
+    opacity: 0.14;
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translate3d(0, -18px, 0);
+  }
+}
+
+@keyframes vp-boot-panel-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vp-boot-logo-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vp-boot-intro-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vp-boot-message-in {
   from {
     opacity: 0;
-    transform: translate3d(-10px, 0, 0);
+    transform: translate3d(0, 8px, 0);
   }
   to {
     opacity: 1;
@@ -243,14 +280,77 @@
   }
 }
 
-@keyframes boot-cursor-blink {
+@keyframes vp-boot-panel-glow {
   0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
   100% {
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.11), 0 2px 10px rgba(15, 23, 42, 0.04),
+      0 0 0 1px rgba(37, 99, 235, 0.04);
+  }
+  50% {
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.13), 0 2px 10px rgba(15, 23, 42, 0.05),
+      0 0 0 1px rgba(37, 99, 235, 0.18);
+  }
+}
+
+@keyframes vp-boot-sheen {
+  0%,
+  55% {
+    transform: translate3d(0, 0, 0) rotate(-12deg);
+  }
+  100% {
+    transform: translate3d(340%, 0, 0) rotate(-12deg);
+  }
+}
+
+@keyframes vp-boot-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes vp-boot-signal {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+@keyframes vp-boot-check-in {
+  from {
     opacity: 0;
+    transform: scale(0.4) rotate(-18deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vp-boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes vp-boot-shine {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes portfolio-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 

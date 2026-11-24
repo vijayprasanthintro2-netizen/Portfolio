@@ -5,5 +5,6 @@
 @import './cms-extras.css';
 @import './animations.css';
 @import './responsive.css';
+@import './theme-fixes.css';
 @import '../admin/admin.css';
 @import '../admin/admin-premium.css';

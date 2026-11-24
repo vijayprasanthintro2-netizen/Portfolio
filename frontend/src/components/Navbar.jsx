@@ -75,11 +75,7 @@ export function Navbar({ theme, onToggleTheme }) {
         <div className="container navbar-inner">
           <button className="nav-logo" onClick={() => goTo('home')} aria-label="Back to top">
             <span className="nav-logo-avatar" aria-hidden="true">
-              {profile.image ? (
-                <img src={profile.image} alt="" width={34} height={34} loading="lazy" decoding="async" />
-              ) : (
-                <LogoMark size={30} />
-              )}
+              <LogoMark size={30} />
             </span>
             <span className="nav-logo-text">{displayName}</span>
           </button>

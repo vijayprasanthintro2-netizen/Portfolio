@@ -1,4 +1,6 @@
-export function LogoMark({ size = 30 }) {
+// Premium VP monogram: the V's right stroke becomes the P stem so the two
+// letters share a single connected form. Dark ink with one blue accent.
+export function LogoMark({ size = 30, title }) {
   return (
     <svg
       width={size}
@@ -6,16 +8,33 @@ export function LogoMark({ size = 30 }) {
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      role={title ? 'img' : undefined}
+      aria-hidden={title ? undefined : 'true'}
+      aria-label={title}
     >
-      <defs>
-        <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#3b82f6" />
-          <stop offset="1" stopColor="#38bdf8" />
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="8" fill="#0b0f1d" />
-      <path d="M9 22V10h4l6 8v-8h4v12h-4l-6-8v8z" fill="url(#logo-grad)" />
+      {title ? <title>{title}</title> : null}
+      <rect x="1" y="1" width="30" height="30" rx="8" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="1.5" />
+      <path
+        d="M6.5 9.5 13 23l6.5-13.5"
+        stroke="#111827"
+        strokeWidth="3.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M19.5 23V9.5"
+        stroke="#111827"
+        strokeWidth="3.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M19.5 9.5h3.1a4.2 4.2 0 0 1 0 8.4h-3.1"
+        stroke="#2563EB"
+        strokeWidth="3.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

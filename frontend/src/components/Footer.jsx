@@ -15,8 +15,6 @@ export function Footer() {
   const profile = content.profile || defaultProfile;
   const socials = content.socials || defaultSocials;
   const navLinks = content.nav || defaultNav;
-  const design = content.design;
-  const logoText = design?.logoText || 'vijay.';
 
   return (
     <footer className="footer">

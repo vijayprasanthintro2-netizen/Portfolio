@@ -80,17 +80,19 @@ export function SettingsPage({ toast, theme, setTheme, onLogout, onOpen }) {
         <div className="ad-theme-switch" role="group" aria-label="Admin theme">
           <button
             type="button"
-            className={theme === 'dark' ? 'active' : ''}
-            onClick={() => setTheme('dark')}
-          >
-            <Moon size={18} /> Dark
-          </button>
-          <button
-            type="button"
             className={theme === 'light' ? 'active' : ''}
+            aria-pressed={theme === 'light'}
             onClick={() => setTheme('light')}
           >
             <Sun size={18} /> Light
+          </button>
+          <button
+            type="button"
+            className={theme === 'dark' ? 'active' : ''}
+            aria-pressed={theme === 'dark'}
+            onClick={() => setTheme('dark')}
+          >
+            <Moon size={18} /> Dark
           </button>
         </div>
       </section>

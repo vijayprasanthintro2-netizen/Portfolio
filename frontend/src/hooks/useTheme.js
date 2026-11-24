@@ -9,7 +9,8 @@ function getInitialTheme() {
   } catch {
     /* ignore */
   }
-  return 'dark';
+  // White is the default for every first-time visitor. Dark stays optional.
+  return 'light';
 }
 
 export function useTheme() {
@@ -24,6 +25,8 @@ export function useTheme() {
     } catch {
       /* ignore */
     }
+    // CMS design tokens are theme-aware; recompute them after the theme changes.
+    window.dispatchEvent(new CustomEvent('vp-theme-change', { detail: theme }));
   }, [theme]);
 
   const toggleTheme = useCallback(() => {

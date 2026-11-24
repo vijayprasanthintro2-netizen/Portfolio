@@ -7,6 +7,8 @@ const ORBIT_PERIOD = 2800; // ms per revolution
 const TRAIL_COUNT = 6;
 const TRAIL_GAP = 20; // px between spawned dots while fast
 const TRAIL_MIN_SPEED = 1.1; // px per ms — only trails on quick swipes
+const TRAIL_DURATION = 600;
+const TRAIL_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 // Only activate for real mouse/trackpad pointers.
 function isFinePointer() {
@@ -65,6 +67,7 @@ const STATE_META = {
 };
 
 const STATE_CLASSES = Object.keys(STATE_META).map((state) => `cursor-${state}`);
+const DEFAULT_INFO = { state: 'default', meta: STATE_META.default, label: '', magEl: null };
 
 export function CustomCursor() {
   const reduced = usePrefersReducedMotion();
@@ -78,17 +81,22 @@ export function CustomCursor() {
   const orbiterRefs = useRef([]);
   const stateRef = useRef('default');
   const magnet = useRef(null);
+  const magnetEl = useRef(null);
+  const pendingMagnetEl = useRef(null);
   const pointer = useRef({ x: 0, y: 0 });
-  const current = useRef({ x: 0, y: 0, scale: 1, dot: 1, orb: 1, sx: 0, sy: 0 });
+  // Only the tiny magnetic offset and the visual scale values are eased.
+  // Position itself is never interpolated, so the cursor cannot trail the mouse.
+  const visual = useRef({ ox: 0, oy: 0, scale: 1, dot: 1, orb: 1 });
+  const offsetTarget = useRef({ x: 0, y: 0 });
   const trail = useRef([]);
+  const trailAnims = useRef([]);
   const trailIdx = useRef(0);
   const last = useRef({ x: 0, y: 0, t: 0 });
   const spawned = useRef({ x: 0, y: 0 });
-  const restartTrail = useRef([]);
-  const clearTrail = useRef([]);
+  const writes = useRef({});
+  const targetCache = useRef(new WeakMap());
   const raf = useRef(0);
   const active = useRef(false);
-  const magnetEl = useRef(null);
 
   useEffect(() => {
     if (!isFinePointer()) return;
@@ -109,47 +117,56 @@ export function CustomCursor() {
       trail.current.push(dot);
     }
 
-    const applyState = (state) => {
-      const meta = STATE_META[state] || STATE_META.default;
+    // Skipping identical writes keeps the loop cheap when the pointer is still.
+    const setTransform = (key, el, value) => {
+      if (!el || writes.current[key] === value) return;
+      el.style.transform = value;
+      writes.current[key] = value;
+    };
+
+    const applyState = (state, meta, label) => {
       root.classList.remove(...STATE_CLASSES);
       root.classList.add(`cursor-${state}`);
       stateRef.current = state;
       if (arrowRef.current) arrowRef.current.style.display = meta.arrow ? 'block' : 'none';
       if (labelRef.current) {
         labelRef.current.style.display = meta.label ? 'block' : 'none';
-        if (meta.label) labelRef.current.textContent = meta.label;
+        if (meta.label) labelRef.current.textContent = label || meta.label;
       }
     };
 
-    const readTarget = (e) => {
-      const state = getState(e.target);
-      applyState(state);
-      if (state === 'project' && labelRef.current) {
-        labelRef.current.textContent = e.target.closest('.project-featured') ? 'OPEN' : 'VIEW';
-      }
-      const meta = STATE_META[state] || STATE_META.default;
-      if (meta.mag) {
-        const el =
-          e.target.closest(
-            'a, button, input, textarea, select, .project-card, .skill-card, .repo-card'
-          ) || e.target;
-        // mouseover also fires for every child inside the same button/card.
-        // Measuring once per target avoids repeated forced layout reads.
-        if (el && el !== magnetEl.current && typeof el.getBoundingClientRect === 'function') {
-          magnetEl.current = el;
-          const r = el.getBoundingClientRect();
-          magnet.current = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-        } else if (!el) {
-          magnetEl.current = null;
-          magnet.current = null;
+    // Hover targets repeat constantly (every child of a button/card fires
+    // mouseover). Resolving each element once removes repeated selector walks
+    // from the mouse path.
+    const resolveTarget = (target) => {
+      if (!(target instanceof Element)) return DEFAULT_INFO;
+      let info = targetCache.current.get(target);
+      if (!info) {
+        const state = getState(target);
+        const meta = STATE_META[state] || STATE_META.default;
+        let label = meta.label;
+        if (state === 'project') {
+          label = target.closest('.project-featured') ? 'OPEN' : 'VIEW';
         }
-      } else {
-        magnetEl.current = null;
-        magnet.current = null;
+        let magEl = null;
+        if (meta.mag) {
+          magEl =
+            target.closest(
+              'a, button, input, textarea, select, .project-card, .skill-card, .repo-card'
+            ) || target;
+        }
+        info = { state, meta, label, magEl };
+        targetCache.current.set(target, info);
       }
+      return info;
     };
 
-    const onOver = (e) => readTarget(e);
+    const onOver = (e) => {
+      const info = resolveTarget(e.target);
+      if (info.state !== stateRef.current) applyState(info.state, info.meta, info.label);
+      pendingMagnetEl.current = info.magEl;
+    };
+
     const onDown = (e) => {
       if (e.button !== 0) return;
       root.classList.add('cursor-clicking');
@@ -199,7 +216,10 @@ export function CustomCursor() {
     };
     const invalidateMagnet = () => {
       magnetEl.current = null;
+      pendingMagnetEl.current = null;
       magnet.current = null;
+      offsetTarget.current.x = 0;
+      offsetTarget.current.y = 0;
     };
 
     document.addEventListener('mouseover', onOver, { passive: true });
@@ -211,96 +231,100 @@ export function CustomCursor() {
     document.documentElement.addEventListener('mouseleave', onLeaveWin);
 
     const tick = (t) => {
-      // Restart trail animations across two frames instead of forcing a
-      // synchronous reflow with `void dot.offsetWidth` on every spawn.
-      if (clearTrail.current.length) {
-        clearTrail.current.forEach((dot) => {
-          dot.style.animation = '';
-        });
-        clearTrail.current = [];
-      }
-      if (restartTrail.current.length) {
-        clearTrail.current = restartTrail.current;
-        restartTrail.current.forEach((dot) => {
-          dot.style.animation = 'none';
-        });
-        restartTrail.current = [];
-      }
-
       const p = pointer.current;
-      const c = current.current;
-      const meta = STATE_META[stateRef.current] || STATE_META.default;
+      const v = visual.current;
 
-      // Ring target = pointer + gentle magnetic pull toward the element center.
-      let tx = p.x;
-      let ty = p.y;
+      // Measure the magnetic element at the start of the frame, before any
+      // transform writes. Measuring once per element avoids forced layout
+      // reads on every mouseover and never interleaves reads with writes.
+      if (pendingMagnetEl.current !== magnetEl.current) {
+        magnetEl.current = pendingMagnetEl.current;
+        const el = magnetEl.current;
+        if (el && typeof el.getBoundingClientRect === 'function') {
+          const r = el.getBoundingClientRect();
+          magnet.current = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        } else {
+          magnet.current = null;
+        }
+      }
+
+      const meta = STATE_META[stateRef.current] || STATE_META.default;
       if (magnet.current && meta.mag) {
         const dx = magnet.current.x - p.x;
         const dy = magnet.current.y - p.y;
         const dist = Math.hypot(dx, dy) || 1;
         const pull = Math.min(dist * 0.13, 9);
-        tx += (dx / dist) * pull;
-        ty += (dy / dist) * pull;
+        offsetTarget.current.x = (dx / dist) * pull;
+        offsetTarget.current.y = (dy / dist) * pull;
+      } else {
+        offsetTarget.current.x = 0;
+        offsetTarget.current.y = 0;
       }
 
-      // Keep the ring close to the physical pointer. The old 0.16 easing
-      // needed ~600 ms to settle after a fast move, which felt like lag.
-      c.x += (tx - c.x) * 0.55;
-      c.y += (ty - c.y) * 0.55;
-      c.scale += (meta.scale - c.scale) * 0.4;
-      c.dot += (meta.dot - c.dot) * 0.4;
-      c.orb += (meta.orb - c.orb) * 0.3;
+      // The old 0.55 positional easing needed ~600 ms to settle after a fast
+      // move, which read as cursor lag. Only the <=9px magnetic offset and the
+      // visual scales are eased; position is pinned to the physical pointer.
+      v.ox += (offsetTarget.current.x - v.ox) * 0.2;
+      v.oy += (offsetTarget.current.y - v.oy) * 0.2;
+      v.scale += (meta.scale - v.scale) * 0.4;
+      v.dot += (meta.dot - v.dot) * 0.4;
+      v.orb += (meta.orb - v.orb) * 0.3;
 
-      // The ambient spotlight stays softer, but no longer drags behind.
-      c.sx += (p.x - c.sx) * 0.2;
-      c.sy += (p.y - c.sy) * 0.2;
+      const rx = p.x + v.ox;
+      const ry = p.y + v.oy;
 
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%) scale(${c.dot})`;
-      }
-      if (ringRef.current) {
-        ringRef.current.style.transform = `translate3d(${c.x}px, ${c.y}px, 0) translate(-50%, -50%) scale(${c.scale})`;
-      }
-      if (arrowRef.current) {
-        arrowRef.current.style.transform = `translate3d(${c.x}px, ${c.y}px, 0) translate(-50%, -50%)`;
-      }
-      if (labelRef.current) {
-        labelRef.current.style.transform = `translate3d(${c.x}px, ${c.y}px, 0) translate(-50%, -50%)`;
-      }
-      if (spotRef.current) {
-        spotRef.current.style.transform = `translate3d(${c.sx}px, ${c.sy}px, 0) translate(-50%, -50%)`;
-      }
+      setTransform('dot', dotRef.current, `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%) scale(${v.dot})`);
+      setTransform('ring', ringRef.current, `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%) scale(${v.scale})`);
+      setTransform('arrow', arrowRef.current, `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`);
+      setTransform('label', labelRef.current, `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%)`);
+      setTransform('spot', spotRef.current, `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%)`);
 
       // Orbiting particles around the ring.
       const base = (t % ORBIT_PERIOD) / ORBIT_PERIOD;
+      const radius = ORBIT_RADIUS * v.orb;
       for (let i = 0; i < ORBIT_COUNT; i++) {
         const el = orbiterRefs.current[i];
         if (!el) continue;
         const a = (base + i / ORBIT_COUNT) * Math.PI * 2;
-        const r = ORBIT_RADIUS * c.orb;
-        el.style.transform = `translate3d(${c.x + Math.cos(a) * r}px, ${c.y + Math.sin(a) * r * 0.82}px, 0) translate(-50%, -50%)`;
-        el.style.opacity = String(Math.min(1, c.orb));
+        const x = rx + Math.cos(a) * radius;
+        const y = ry + Math.sin(a) * radius * 0.82;
+        setTransform(`orb${i}`, el, `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`);
+        const opacity = String(Math.min(1, v.orb));
+        if (el.style.opacity !== opacity) el.style.opacity = opacity;
       }
 
-      // Speed-based trail: spawn only while moving quickly.
-      const now = performance.now();
-      const dt = Math.max(now - last.current.t, 1);
+      // Speed-based trail. Position is a compositor transform, and the fade
+      // runs through the Web Animations API — no left/top and no forced reflow
+      // to restart a CSS animation while the pointer is moving fast.
+      const dt = Math.max(t - last.current.t, 1);
       const speed = Math.hypot(p.x - last.current.x, p.y - last.current.y) / dt;
       const moved = Math.hypot(p.x - spawned.current.x, p.y - spawned.current.y);
       if (speed > TRAIL_MIN_SPEED && moved > TRAIL_GAP) {
-        const dot = trail.current[trailIdx.current % TRAIL_COUNT];
+        const idx = trailIdx.current % TRAIL_COUNT;
+        const dot = trail.current[idx];
         trailIdx.current += 1;
         if (dot) {
-          dot.style.left = `${p.x}px`;
-          dot.style.top = `${p.y}px`;
-          restartTrail.current.push(dot);
+          const at = `translate3d(${p.x}px, ${p.y}px, 0)`;
+          dot.style.transform = at;
+          if (typeof dot.animate === 'function') {
+            if (trailAnims.current[idx]) trailAnims.current[idx].cancel();
+            trailAnims.current[idx] = dot.animate(
+              [
+                { transform: `${at} scale(1)`, opacity: 0.5 },
+                { transform: `${at} scale(0.2)`, opacity: 0 },
+              ],
+              { duration: TRAIL_DURATION, easing: TRAIL_EASING, fill: 'forwards' }
+            );
+          } else {
+            dot.style.opacity = '0.5';
+          }
         }
         spawned.current.x = p.x;
         spawned.current.y = p.y;
       }
       last.current.x = p.x;
       last.current.y = p.y;
-      last.current.t = now;
+      last.current.t = t;
 
       // Keep animating only while the pointer is inside the window; otherwise
       // idle until the next mousemove restarts the loop.
@@ -317,10 +341,12 @@ export function CustomCursor() {
       window.removeEventListener('mousemove', onMove);
       document.documentElement.removeEventListener('mouseleave', onLeaveWin);
       cancelAnimationFrame(raf.current);
+      trailAnims.current.forEach((anim) => anim && anim.cancel());
       trail.current.forEach((dot) => dot.remove());
       trail.current = [];
-      restartTrail.current = [];
-      clearTrail.current = [];
+      trailAnims.current = [];
+      writes.current = {};
+      targetCache.current = new WeakMap();
     };
   }, [enabled, reduced]);
 

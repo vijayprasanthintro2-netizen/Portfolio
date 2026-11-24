@@ -1,18 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#FFFFFF" />
+  <rect x="0" y="0" width="1200" height="630" fill="url(#soft)" />
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#070a14"/>
-      <stop offset="1" stop-color="#0d1226"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#7c5cff"/>
-      <stop offset="1" stop-color="#22d3ee"/>
+    <linearGradient id="soft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8FAFC" stop-opacity="0.9" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="1" />
     </linearGradient>
   </defs>
-  <rect width="1200" height="630" fill="url(#bg)"/>
-  <circle cx="1040" cy="120" r="260" fill="#7c5cff" opacity="0.16"/>
-  <circle cx="160" cy="520" r="300" fill="#22d3ee" opacity="0.12"/>
-  <text x="88" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="700" fill="#f4f6ff">VIJAYPRASANTH S</text>
-  <text x="92" y="360" font-family="Segoe UI, Arial, sans-serif" font-size="34" fill="#9aa3c0">MERN Stack Developer</text>
-  <rect x="92" y="400" width="360" height="10" rx="5" fill="url(#accent)"/>
+
+  <g transform="translate(96 176) scale(4.9)">
+    <rect x="1" y="1" width="30" height="30" rx="8" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" />
+    <path d="M6.5 9.5 13 23l6.5-13.5" fill="none" stroke="#111827" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M19.5 23V9.5" fill="none" stroke="#111827" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M19.5 9.5h3.1a4.2 4.2 0 0 1 0 8.4h-3.1" fill="none" stroke="#2563EB" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+
+  <text x="308" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="700" fill="#111827">VIJAYPRASANTH S</text>
+  <text x="312" y="348" font-family="Segoe UI, Arial, sans-serif" font-size="34" fill="#475569">MERN Stack Developer</text>
+  <rect x="312" y="394" width="360" height="10" rx="5" fill="#2563EB" />
+  <text x="312" y="454" font-family="Segoe UI, Arial, sans-serif" font-size="24" fill="#64748B">Modern, responsive web experiences with the MERN stack.</text>
 </svg>

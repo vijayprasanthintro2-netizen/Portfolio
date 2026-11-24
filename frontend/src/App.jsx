@@ -73,7 +73,7 @@ function Portfolio() {
           <Static.Backdrop />
           <Static.ScrollProgress />
           <Navbar theme={theme} onToggleTheme={toggleTheme} />
-          <main>
+          <main className="portfolio-main">
             <Static.Hero />
             <Static.TechMarquee />
             <Static.About />

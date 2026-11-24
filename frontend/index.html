@@ -9,11 +9,21 @@
       content="MERN Stack Developer portfolio of VijayPrasanth S showcasing full-stack projects, technical skills, internship experience and web development work."
     />
     <meta name="author" content="Vijayprasanth S" />
-    <meta name="theme-color" content="#070a14" />
+    <meta name="theme-color" content="#FFFFFF" />
 
-    <!-- Apply the saved admin theme before any UI renders. Only two themes exist;
-         an unset preference opens the admin panel in light mode. -->
+    <!-- Apply both saved themes before React renders. Only two themes exist for
+         each surface; an unset preference always opens in white/light mode. -->
     <script>
+      try {
+        var savedTheme = localStorage.getItem('vp-theme');
+        document.documentElement.setAttribute(
+          'data-theme',
+          savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : 'light'
+        );
+      } catch (error) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+
       try {
         var savedAdminTheme = localStorage.getItem('vp-admin-theme');
         document.documentElement.setAttribute(
