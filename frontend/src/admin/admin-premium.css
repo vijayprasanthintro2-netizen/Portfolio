@@ -6,6 +6,7 @@
 /* White is the admin default — applied even before a preference is saved.
    The optional dark palette in admin.css applies only to dark. */
 :root:not([data-admin-theme='dark']) {
+  color-scheme: light;
   --admin-bg: #f8fafc;
   --admin-panel: #ffffff;
   --admin-panel-2: #f8fafc;
@@ -700,7 +701,6 @@
 .ad-pdf-frame { width: 100%; height: min(65dvh, 620px); border: 0; border-radius: 12px; background: #fff; }
 .ad-preview-image { display: block; width: 100%; max-height: 60dvh; object-fit: contain; border-radius: 12px; }
 .ad-preview-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
-.ad-hidden-helper { width: 0; height: 0; overflow: hidden; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1180px) {
@@ -1036,4 +1036,64 @@
 
 @media (max-width: 380px) {
   .ad-theme-switch { grid-template-columns: 1fr; }
+}
+
+/* Selection contrast follows the admin theme, not the public site. */
+:root:not([data-admin-theme='dark']) ::selection {
+  background: rgba(37, 99, 235, 0.2);
+  color: #0f172a;
+}
+:root[data-admin-theme='dark'] ::selection {
+  background: rgba(59, 130, 246, 0.38);
+  color: #fff;
+}
+
+/* ---------- Admin touch feedback ---------- */
+@media (hover: none), (pointer: coarse) {
+  .af-btn,
+  .af-icon-btn,
+  .ad-icon-btn,
+  .ad-nav-item,
+  .ad-quick,
+  .ad-dropzone,
+  .ad-media-thumb,
+  .ad-message-open,
+  .ad-theme-switch button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform 0.18s var(--ease-out), opacity 0.18s var(--ease-out),
+      background-color 0.18s var(--ease-out), border-color 0.18s var(--ease-out),
+      color 0.18s var(--ease-out);
+  }
+
+  .af-btn,
+  .af-icon-btn,
+  .ad-icon-btn,
+  .ad-nav-item,
+  .ad-quick,
+  .ad-dropzone,
+  .ad-theme-switch button {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .af-btn:active,
+  .af-icon-btn:active,
+  .ad-icon-btn:active,
+  .ad-nav-item:active,
+  .ad-quick:active,
+  .ad-dropzone:active,
+  .ad-media-thumb:active,
+  .ad-message-open:active,
+  .ad-theme-switch button:active {
+    transform: scale(0.97);
+    opacity: 0.88;
+  }
+
+  .ad-shell input,
+  .ad-shell textarea,
+  .ad-shell [contenteditable='true'] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }

@@ -41,28 +41,30 @@ export function ResumePage({ toast, onError, onOpen }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [validationError, setValidationError] = useState('');
   const inputRef = useRef(null);
+  const requestRef = useRef(0);
 
-  const load = useCallback(() => {
-    let active = true;
+  const load = useCallback(async () => {
+    const request = ++requestRef.current;
     setLoading(true);
-    adminGetResume()
-      .then((res) => {
-        if (active) setInfo(res.data);
-      })
-      .catch((err) => {
-        if (!active) return;
-        if (err.status === 401) onError(err);
-        else toast(err.message || 'Could not load resume details.', 'error');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+    try {
+      const res = await adminGetResume();
+      if (request !== requestRef.current) return;
+      setInfo(res.data);
+    } catch (err) {
+      if (request !== requestRef.current) return;
+      if (err.status === 401) onError(err);
+      else toast(err.message || 'Could not load resume details.', 'error');
+    } finally {
+      if (request === requestRef.current) setLoading(false);
+    }
   }, [onError, toast]);
 
-  useEffect(load, [load]);
+  useEffect(() => {
+    load();
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [load]);
 
   const startUpload = async (file) => {
     setBusy(true);

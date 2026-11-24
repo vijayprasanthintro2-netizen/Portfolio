@@ -1,5 +1,10 @@
 export const ADMIN_THEME_KEY = 'vp-admin-theme';
 
+const META_COLORS = {
+  light: '#ffffff',
+  dark: '#05070d',
+};
+
 // Only two admin themes exist. When nothing has been saved, open in light
 // (white) mode without changing any existing color definitions.
 export function readAdminTheme() {
@@ -13,7 +18,11 @@ export function readAdminTheme() {
 
 export function applyAdminTheme(theme) {
   try {
-    document.documentElement.setAttribute('data-admin-theme', theme);
+    const root = document.documentElement;
+    root.setAttribute('data-admin-theme', theme);
+    root.style.colorScheme = theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', META_COLORS[theme] || META_COLORS.light);
   } catch {
     /* ignore */
   }

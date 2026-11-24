@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'vp-theme';
+const META_COLORS = {
+  light: '#ffffff',
+  dark: '#04060d',
+};
 
 function getInitialTheme() {
   try {
@@ -20,6 +24,8 @@ export function useTheme() {
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
     root.style.colorScheme = theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', META_COLORS[theme] || META_COLORS.light);
     try {
       window.localStorage.setItem(STORAGE_KEY, theme);
     } catch {

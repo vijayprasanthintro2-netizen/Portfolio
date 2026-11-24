@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 // Adds the .is-visible class when an element scrolls into view.
 // Falls back to visible instantly when IntersectionObserver is unavailable.

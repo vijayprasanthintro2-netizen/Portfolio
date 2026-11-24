@@ -12,6 +12,8 @@ html {
   scroll-padding-top: calc(var(--nav-height) + 12px);
   -webkit-text-size-adjust: 100%;
   overflow-x: clip;
+  /* Browser blue tap flashes are unwanted here; text selection stays enabled. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -71,7 +73,6 @@ ol {
 :focus-visible {
   outline: 2px solid var(--accent-2);
   outline-offset: 3px;
-  border-radius: 4px;
 }
 
 /* ---------- Typography ---------- */
@@ -158,14 +159,6 @@ section {
 
 .gradient-text {
   background: var(--grad-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-
-.gradient-blue {
-  background: var(--grad-blue);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

@@ -214,6 +214,7 @@ function ImageField({ label, hint, value, onChange, assetUpload = false }) {
             <img
               src={previewSrc}
               alt={label}
+              decoding="async"
               onError={() => setPreviewError('This image could not be loaded. Upload a replacement to fix it.')}
             />
           ) : (

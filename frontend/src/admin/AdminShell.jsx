@@ -17,6 +17,7 @@ import { sectionNav, navGroups, sections, getSectionMeta } from './sections';
 import { SectionForm, validateSection } from './FormBuilder';
 import { readAdminTheme, applyAdminTheme, ADMIN_THEME_KEY } from './theme';
 import { normalizeSectionValue } from '../content/shape';
+import { getScrollBehavior } from '../lib/scrollTracker';
 import { Toast, ConfirmDialog } from './ui';
 import { Dashboard } from './Dashboard';
 import { ResumePage } from './ResumePage';
@@ -30,10 +31,8 @@ import {
   adminResetSection,
 } from '../content/api';
 
-const CUSTOM_PAGES = ['resume', 'media', 'messages', 'settings'];
-
 export function AdminShell({ onLogout }) {
-  const { content, status, refresh } = useContent();
+  const { content, refresh } = useContent();
   const [activeKey, setActiveKey] = useState(() => {
     const match = window.location.hash.match(/^#\/admin\/([\w-]+)/);
     return match && sectionNav.some((s) => s.key === match[1]) ? match[1] : 'dashboard';
@@ -48,11 +47,11 @@ export function AdminShell({ onLogout }) {
   const [toasts, setToasts] = useState([]);
   const [confirmNav, setConfirmNav] = useState(null);
   const toastId = useRef(0);
+  const toastTimers = useRef(new Map());
   const prevActive = useRef(activeKey);
 
   const meta = sections[activeKey];
   const navItem = getSectionMeta(activeKey);
-  const isCustom = CUSTOM_PAGES.includes(activeKey);
 
   const setTheme = useCallback((value) => {
     setThemeState(value);
@@ -70,10 +69,27 @@ export function AdminShell({ onLogout }) {
   const toast = useCallback((message, kind = 'success') => {
     const id = ++toastId.current;
     setToasts((t) => [...t, { id, message, kind }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4500);
+    const timer = setTimeout(() => {
+      setToasts((t) => t.filter((x) => x.id !== id));
+      toastTimers.current.delete(id);
+    }, 4500);
+    toastTimers.current.set(id, timer);
   }, []);
 
-  const removeToast = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id)), []);
+  useEffect(
+    () => () => {
+      toastTimers.current.forEach(clearTimeout);
+      toastTimers.current.clear();
+    },
+    []
+  );
+
+  const removeToast = useCallback((id) => {
+    const timer = toastTimers.current.get(id);
+    if (timer) clearTimeout(timer);
+    toastTimers.current.delete(id);
+    setToasts((t) => t.filter((x) => x.id !== id));
+  }, []);
 
   const handleError = useCallback(
     (err) => {
@@ -97,7 +113,7 @@ export function AdminShell({ onLogout }) {
       setDrawerOpen(false);
       const hash = key === 'dashboard' ? '#/admin' : `#/admin/${key}`;
       if (window.location.hash !== hash) window.location.hash = hash;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: getScrollBehavior() });
     },
     []
   );
@@ -177,7 +193,10 @@ export function AdminShell({ onLogout }) {
     if (activeKey === 'design') {
       if (draft) applyDesign(draft);
     } else if (prevActive.current === 'design') {
-      document.documentElement.removeAttribute('style');
+      const root = document.documentElement;
+      const colorScheme = root.style.colorScheme;
+      root.removeAttribute('style');
+      root.style.colorScheme = colorScheme;
       if (content.design) applyDesign(content.design);
     }
     prevActive.current = activeKey;
@@ -222,13 +241,14 @@ export function AdminShell({ onLogout }) {
         <InboxPage toast={toast} onError={handleError} />
       );
     }
-    if (activeKey === 'settings' || activeKey === 'account') {
+    if (activeKey === 'settings') {
       return (
         <SettingsPage
           toast={toast}
           theme={theme}
           setTheme={setTheme}
           onLogout={onLogout}
+          onError={handleError}
           onOpen={open}
         />
       );

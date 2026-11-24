@@ -74,6 +74,3 @@ export const projects = [
     demo: null, // No confirmed live URL for the Weather App — kept honest.
   },
 ];
-
-export const resumeNote =
-  'Add a resume file to frontend/public and set profile.resume in src/config.js to enable the download button.';

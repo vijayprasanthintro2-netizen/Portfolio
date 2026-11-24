@@ -108,7 +108,12 @@ export function ProjectModal({ project, onClose }) {
                   <div className="project-screenshots">
                     {list(project.screenshots).map((src, index) => (
                       <a href={src} target="_blank" rel="noreferrer" key={`${src}-${index}`}>
-                        <img src={src} alt={`${project.name} screenshot ${index + 1}`} loading="lazy" />
+                        <img
+                          src={src}
+                          alt={`${project.name} screenshot ${index + 1}`}
+                          loading="lazy"
+                          decoding="async"
+                        />
                       </a>
                     ))}
                   </div>

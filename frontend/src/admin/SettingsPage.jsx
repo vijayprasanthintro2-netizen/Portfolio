@@ -35,7 +35,7 @@ function sessionExpiry() {
   }
 }
 
-export function SettingsPage({ toast, theme, setTheme, onLogout, onOpen }) {
+export function SettingsPage({ toast, theme, setTheme, onLogout, onError, onOpen }) {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [saving, setSaving] = useState(false);
@@ -54,7 +54,7 @@ export function SettingsPage({ toast, theme, setTheme, onLogout, onOpen }) {
       setNext('');
       toast('Password updated successfully.');
     } catch (err) {
-      if (err.status === 401) onLogout();
+      if (err.status === 401) onError(err);
       else toast(err.message || 'Could not change password.', 'error');
     } finally {
       setSaving(false);

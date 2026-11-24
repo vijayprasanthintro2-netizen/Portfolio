@@ -131,7 +131,13 @@ function uploadFile(path, file, { method = 'POST', extra = {}, onProgress } = {}
     }
 
     xhr.onload = () => {
-      const data = JSON.parse(xhr.responseText || '{}');
+      let data;
+      try {
+        data = JSON.parse(xhr.responseText || '{}');
+      } catch {
+        reject(new Error('The server returned an unexpected response. Please try again.'));
+        return;
+      }
       if (xhr.status >= 200 && xhr.status < 300) {
         onProgress?.(100);
         resolve(data);

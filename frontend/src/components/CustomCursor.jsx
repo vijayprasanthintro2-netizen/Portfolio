@@ -10,9 +10,10 @@ const TRAIL_MIN_SPEED = 1.1; // px per ms — only trails on quick swipes
 const TRAIL_DURATION = 600;
 const TRAIL_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
-// Only activate for real mouse/trackpad pointers.
-function isFinePointer() {
-  return typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches;
+// Match the CSS: the custom cursor belongs to fine pointers that can hover.
+// Touch-only devices keep the native touch experience.
+function getPointerQuery() {
+  return window.matchMedia('(pointer: fine) and (hover: hover)');
 }
 
 // Decide the cursor state from the hovered element.
@@ -99,8 +100,12 @@ export function CustomCursor() {
   const active = useRef(false);
 
   useEffect(() => {
-    if (!isFinePointer()) return;
-    setEnabled(true);
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
+    const query = getPointerQuery();
+    const sync = () => setEnabled(query.matches);
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
   }, []);
 
   useEffect(() => {
@@ -171,12 +176,14 @@ export function CustomCursor() {
       if (e.button !== 0) return;
       root.classList.add('cursor-clicking');
 
+      // One insertion per click instead of nine; the animation itself is unchanged.
+      const burst = document.createDocumentFragment();
       const ripple = document.createElement('span');
       ripple.className = 'cursor-ripple';
       ripple.style.left = `${e.clientX}px`;
       ripple.style.top = `${e.clientY}px`;
-      root.appendChild(ripple);
       ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+      burst.appendChild(ripple);
 
       // Small particle burst on click.
       const count = 8;
@@ -196,18 +203,21 @@ export function CustomCursor() {
         p.style.marginLeft = `${-size / 2}px`;
         p.style.marginTop = `${-size / 2}px`;
         p.style.animationDelay = `${Math.floor(Math.random() * 40)}ms`;
-        root.appendChild(p);
         p.addEventListener('animationend', () => p.remove(), { once: true });
+        burst.appendChild(p);
       }
+      root.appendChild(burst);
     };
     const onUp = () => root.classList.remove('cursor-clicking');
     const onMove = (e) => {
       pointer.current.x = e.clientX;
       pointer.current.y = e.clientY;
-      root.classList.add('cursor-active');
-      // The cursor is invisible until this point, so the animation loop only
-      // needs to run while the pointer is over the page.
-      active.current = true;
+      // Avoid writing the same class on every mousemove; style invalidation on a
+      // hot event adds delay before the next frame.
+      if (!active.current) {
+        root.classList.add('cursor-active');
+        active.current = true;
+      }
       if (!raf.current) raf.current = requestAnimationFrame(tick);
     };
     const onLeaveWin = () => {
@@ -332,6 +342,9 @@ export function CustomCursor() {
     };
 
     return () => {
+      invalidateMagnet();
+      stateRef.current = 'default';
+      visual.current = { ox: 0, oy: 0, scale: 1, dot: 1, orb: 1 };
       document.documentElement.classList.remove('vpc-cursor');
       document.removeEventListener('mouseover', onOver);
       window.removeEventListener('scroll', invalidateMagnet);
@@ -340,7 +353,9 @@ export function CustomCursor() {
       window.removeEventListener('mouseup', onUp);
       window.removeEventListener('mousemove', onMove);
       document.documentElement.removeEventListener('mouseleave', onLeaveWin);
-      cancelAnimationFrame(raf.current);
+      if (raf.current) cancelAnimationFrame(raf.current);
+      raf.current = 0;
+      active.current = false;
       trailAnims.current.forEach((anim) => anim && anim.cancel());
       trail.current.forEach((dot) => dot.remove());
       trail.current = [];

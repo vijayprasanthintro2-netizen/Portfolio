@@ -422,3 +422,69 @@
     gap: 64px;
   }
 }
+
+/* ---------- Touch polish ----------
+   Tap flashes are disabled in base.css. These rules add deliberate press
+   feedback on touch devices without changing native scrolling or selection. */
+@media (hover: none), (pointer: coarse) {
+  a,
+  button,
+  [role='button'],
+  .project-card,
+  .skill-card,
+  .certificate-card,
+  .repo-card {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .btn,
+  .social-link,
+  .nav-toggle,
+  .nav-link,
+  .mobile-link,
+  .footer-nav a,
+  .chip,
+  .back-to-top {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .social-link,
+  .nav-toggle,
+  .mobile-link,
+  .certificate-card,
+  .repo-card {
+    transition: transform 0.18s var(--ease-out), opacity 0.18s var(--ease-out),
+      background-color 0.18s var(--ease-out), border-color 0.18s var(--ease-out),
+      color 0.18s var(--ease-out);
+  }
+
+  .btn:active {
+    transform: translateY(1px) scale(0.97);
+    opacity: 0.9;
+  }
+
+  .social-link:active,
+  .nav-toggle:active,
+  .mobile-link:active,
+  .back-to-top:active,
+  .certificate-card:active,
+  .repo-card:active {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+
+  .project-card:active,
+  .skill-card:active {
+    transform: scale(0.995);
+  }
+
+  /* Long-press selection still works where users expect it. */
+  input,
+  textarea,
+  [contenteditable='true'] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}

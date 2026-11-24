@@ -2,6 +2,11 @@
 // scroll-derived UI (progress bar, sticky navbar, back-to-top button).
 // Previously each of those components owned its own listener and rAF loop.
 const subscribers = new Set();
+
+// Programmatic scrolling should respect the same preference as CSS animations.
+export function getScrollBehavior() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+}
 let frame = 0;
 let listening = false;
 

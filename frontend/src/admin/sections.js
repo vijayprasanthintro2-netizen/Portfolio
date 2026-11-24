@@ -18,7 +18,6 @@ import {
   Award,
   FileText,
   Images,
-  ShieldCheck,
 } from 'lucide-react';
 
 // Section editor types:

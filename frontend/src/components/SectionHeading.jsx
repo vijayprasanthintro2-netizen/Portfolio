@@ -28,7 +28,6 @@ export function SectionHeading({
   title,
   sub,
   center = false,
-  animate = true,
   highlight = [],
 }) {
   const numberValue = index ?? num ?? number ?? '';

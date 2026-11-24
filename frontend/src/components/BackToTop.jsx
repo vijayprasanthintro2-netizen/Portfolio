@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
-import { subscribeScroll } from '../lib/scrollTracker';
+import { getScrollBehavior, subscribeScroll } from '../lib/scrollTracker';
 
 export function BackToTop() {
   const [show, setShow] = useState(false);
@@ -25,7 +25,7 @@ export function BackToTop() {
           type="button"
           className="back-to-top"
           aria-label="Back to top"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => window.scrollTo({ top: 0, behavior: getScrollBehavior() })}
           initial={{ opacity: 0, y: 16, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.9 }}

@@ -1,7 +1,7 @@
 import { useReveal } from '../hooks/useReveal';
 
 // Wraps children and reveals them on scroll via IntersectionObserver.
-// variant: 'up' (default fade-up + blur + scale) | 'left' | 'right' | 'none'
+// `variant` appends a modifier class and `delay` adds a short stagger.
 export function Reveal({ children, delay = 0, variant = 'up', as: Tag = 'div', className = '' }) {
   const ref = useReveal();
 

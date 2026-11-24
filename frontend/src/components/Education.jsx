@@ -47,7 +47,15 @@ function CertificateCard({ certificate }) {
   const content = (
     <>
       {certificate.image ? (
-        <img className="certificate-image" src={certificate.image} alt={certificate.title} loading="lazy" />
+        <img
+          className="certificate-image"
+          src={certificate.image}
+          alt={certificate.title}
+          width={52}
+          height={52}
+          loading="lazy"
+          decoding="async"
+        />
       ) : (
         <span className="certificate-icon"><Award size={26} aria-hidden="true" /></span>
       )}

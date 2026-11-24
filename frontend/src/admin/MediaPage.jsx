@@ -7,7 +7,6 @@ import {
   Eye,
   Copy,
   Search,
-  FileImage,
   AlertCircle,
   CheckCircle2,
 } from 'lucide-react';
@@ -42,28 +41,30 @@ export function MediaPage({ toast, onError }) {
   const inputRef = useRef(null);
   const replaceRef = useRef(null);
   const replaceTarget = useRef(null);
+  const requestRef = useRef(0);
 
-  const load = useCallback(() => {
-    let active = true;
+  const load = useCallback(async () => {
+    const request = ++requestRef.current;
     setLoading(true);
-    adminListAssets()
-      .then((res) => {
-        if (active) setItems(res.data || []);
-      })
-      .catch((err) => {
-        if (!active) return;
-        if (err.status === 401) onError(err);
-        else toast(err.message || 'Could not load media.', 'error');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+    try {
+      const res = await adminListAssets();
+      if (request !== requestRef.current) return;
+      setItems(res.data || []);
+    } catch (err) {
+      if (request !== requestRef.current) return;
+      if (err.status === 401) onError(err);
+      else toast(err.message || 'Could not load media.', 'error');
+    } finally {
+      if (request === requestRef.current) setLoading(false);
+    }
   }, [onError, toast]);
 
-  useEffect(load, [load]);
+  useEffect(() => {
+    load();
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [load]);
 
   const runUpload = async (file, kind, replaceKey) => {
     setBusy(true);
@@ -225,7 +226,7 @@ export function MediaPage({ toast, onError }) {
                   onClick={() => setPreview(item)}
                   aria-label={`Preview ${item.filename}`}
                 >
-                  <img src={item.url} alt={item.filename} loading="lazy" />
+                  <img src={item.url} alt={item.filename} loading="lazy" decoding="async" />
                 </button>
                 <div className="ad-media-details">
                   <strong title={item.filename}>{item.filename}</strong>
@@ -261,7 +262,7 @@ export function MediaPage({ toast, onError }) {
 
       {preview && (
         <Modal title={preview.filename} wide onClose={() => setPreview(null)}>
-          <img className="ad-preview-image" src={preview.url} alt={preview.filename} />
+          <img className="ad-preview-image" src={preview.url} alt={preview.filename} decoding="async" />
           <div className="ad-preview-actions">
             <button type="button" className="af-btn primary" onClick={() => copyUrl(preview.url)}>
               <Copy size={15} /> Copy URL
@@ -292,8 +293,6 @@ export function MediaPage({ toast, onError }) {
           onConfirm={remove}
         />
       )}
-
-      <div className="ad-hidden-helper"><FileImage size={0} /></div>
     </div>
   );
 }

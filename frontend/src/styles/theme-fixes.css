@@ -9,6 +9,12 @@
     radial-gradient(760px 480px at 6% 108%, var(--glow-body-2), transparent 58%);
 }
 
+/* Keep selected text readable on the white theme. */
+:root:not([data-theme='dark']) ::selection {
+  background: rgba(37, 99, 235, 0.22);
+  color: #0f172a;
+}
+
 /* ---------- Surfaces, buttons and cards ---------- */
 :root:not([data-theme='dark']) .card,
 :root:not([data-theme='dark']) .project-card,
@@ -202,8 +208,7 @@
 /* ---------- Projects, timeline and modals ---------- */
 :root:not([data-theme='dark']) .project-media-loading,
 :root:not([data-theme='dark']) .project-media-placeholder,
-:root:not([data-theme='dark']) .modal-image-box,
-:root:not([data-theme='dark']) .lightbox-media {
+:root:not([data-theme='dark']) .modal-image-box {
   background-color: var(--secondary-bg);
 }
 

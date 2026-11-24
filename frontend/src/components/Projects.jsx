@@ -68,9 +68,13 @@ const ProjectHead = memo(function ProjectHead({ project }) {
 export function Projects() {
   const [selected, setSelected] = useState(null);
   const { content, status } = useContent();
-  const savedProjects = normalizeList(content.projects);
+  const savedProjects = useMemo(() => normalizeList(content.projects), [content.projects]);
   const saved = savedProjects || defaultProjects;
-  const projects = [...saved].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+
+  const projects = useMemo(
+    () => [...saved].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)),
+    [saved]
+  );
 
   const { featured, rest } = useMemo(
     () => ({

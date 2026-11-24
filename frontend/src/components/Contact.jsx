@@ -71,7 +71,6 @@ export function Contact() {
           kicker="Contact"
           title="Let's Build Something Great"
           sub="Have a project in mind, an opportunity to share, or just want to say hello? My inbox is always open."
-          animate
           highlight={['Something', 'Great']}
         />
 
@@ -85,7 +84,7 @@ export function Contact() {
               </p>
 
               <div className="contact-links">
-                <Magnetic strength={8} max={5}>
+                <Magnetic strength={8}>
                   <a className="contact-link" href={`mailto:${socials.email}`}>
                     <Mail aria-hidden="true" />
                     <span className="contact-link-text">
@@ -94,7 +93,7 @@ export function Contact() {
                     </span>
                   </a>
                 </Magnetic>
-                <Magnetic strength={8} max={5}>
+                <Magnetic strength={8}>
                   <a className="contact-link" href={`tel:${socials.phone}`}>
                     <Phone aria-hidden="true" />
                     <span className="contact-link-text">
@@ -103,7 +102,7 @@ export function Contact() {
                     </span>
                   </a>
                 </Magnetic>
-                <Magnetic strength={8} max={5}>
+                <Magnetic strength={8}>
                   <a className="contact-link" href={socials.github} target="_blank" rel="noreferrer">
                     <Github aria-hidden="true" />
                     <span className="contact-link-text">
@@ -112,7 +111,7 @@ export function Contact() {
                     </span>
                   </a>
                 </Magnetic>
-                <Magnetic strength={8} max={5}>
+                <Magnetic strength={8}>
                   <a className="contact-link" href={socials.linkedin} target="_blank" rel="noreferrer">
                     <Linkedin aria-hidden="true" />
                     <span className="contact-link-text">
@@ -122,7 +121,7 @@ export function Contact() {
                   </a>
                 </Magnetic>
                 {socials.instagram && (
-                  <Magnetic strength={8} max={5}>
+                  <Magnetic strength={8}>
                     <a className="contact-link" href={socials.instagram} target="_blank" rel="noreferrer">
                       <Instagram aria-hidden="true" />
                       <span className="contact-link-text">
@@ -210,7 +209,7 @@ export function Contact() {
                 </div>
               )}
 
-              <Magnetic strength={14} max={8}>
+              <Magnetic strength={14}>
                 <button className="btn btn-primary" type="submit" disabled={status === 'sending'}>
                   <Send className="btn-icon" aria-hidden="true" />
                   {status === 'sending' ? 'Sending...' : 'Send Message'}

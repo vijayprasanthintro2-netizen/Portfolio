@@ -14,7 +14,7 @@ function clamp(v, min, max) {
 
 // Subtle magnetic wrapper: the button eases toward the cursor when nearby.
 // Mouse-only, small movement, smooth return. Disabled for touch/reduced motion.
-export function Magnetic({ children, strength = 10, max = 7, className = '' }) {
+export function Magnetic({ children, strength = 10, className = '' }) {
   const ref = useRef(null);
   const reduced = usePrefersReducedMotion();
   const raf = useRef(0);

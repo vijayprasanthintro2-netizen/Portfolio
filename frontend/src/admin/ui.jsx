@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 
 export function Toast({ toasts, remove }) {
@@ -19,13 +19,19 @@ export function Toast({ toasts, remove }) {
 }
 
 export function Modal({ title, onClose, children, wide = false }) {
+  const closeRef = useRef(onClose);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') closeRef.current();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   return (
     <div className="ad-modal-layer" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

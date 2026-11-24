@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Inbox,
   Search,
@@ -22,27 +22,29 @@ export function InboxPage({ toast, onError }) {
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const requestRef = useRef(0);
 
-  const load = useCallback(() => {
-    let active = true;
-    adminGetMessages()
-      .then((res) => {
-        if (active) setItems(res.data || []);
-      })
-      .catch((err) => {
-        if (!active) return;
-        if (err.status === 401) onError(err);
-        else {
-          setItems([]);
-          toast(err.message || 'Could not load messages.', 'error');
-        }
-      });
-    return () => {
-      active = false;
-    };
+  const load = useCallback(async () => {
+    const request = ++requestRef.current;
+    try {
+      const res = await adminGetMessages();
+      if (request === requestRef.current) setItems(res.data || []);
+    } catch (err) {
+      if (request !== requestRef.current) return;
+      if (err.status === 401) onError(err);
+      else {
+        setItems([]);
+        toast(err.message || 'Could not load messages.', 'error');
+      }
+    }
   }, [onError, toast]);
 
-  useEffect(load, [load]);
+  useEffect(() => {
+    load();
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [load]);
 
   const visible = useMemo(() => {
     const list = items || [];
@@ -63,6 +65,7 @@ export function InboxPage({ toast, onError }) {
       await adminSetMessageRead(message._id, next);
     } catch (err) {
       setItems((prev) => prev?.map((m) => (m._id === message._id ? { ...m, read: message.read } : m)));
+      setSelected((prev) => (prev?._id === message._id ? { ...prev, read: message.read } : prev));
       if (err.status === 401) onError(err);
       else toast(err.message || 'Could not update message.', 'error');
     }

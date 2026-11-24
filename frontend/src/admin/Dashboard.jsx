@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FolderKanban,
   Wrench,
@@ -27,26 +27,28 @@ const QUICK_ACTIONS = [
 export function Dashboard({ onOpen, toast }) {
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
+  const requestRef = useRef(0);
 
-  const load = useCallback(() => {
-    let active = true;
+  const load = useCallback(async () => {
+    const request = ++requestRef.current;
     setLoading(true);
-    adminGetOverview()
-      .then((res) => {
-        if (active) setOverview(res.data);
-      })
-      .catch((err) => {
-        if (active) toast(err.message || 'Could not load overview.', 'error');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+    try {
+      const res = await adminGetOverview();
+      if (request !== requestRef.current) return;
+      setOverview(res.data);
+    } catch (err) {
+      if (request === requestRef.current) toast(err.message || 'Could not load overview.', 'error');
+    } finally {
+      if (request === requestRef.current) setLoading(false);
+    }
   }, [toast]);
 
-  useEffect(load, [load]);
+  useEffect(() => {
+    load();
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [load]);
 
   const stats = overview?.stats || {};
   const resume = overview?.resume || {};
