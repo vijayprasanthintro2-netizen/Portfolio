@@ -1,8 +1,7 @@
-import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import { env, validateEnv } from './config/env.js';
+import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import contactRoutes from './routes/contactRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -11,8 +10,6 @@ import publicAssetRoutes from './routes/publicAssetRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { seedAdmin } from './controllers/authController.js';
-
-validateEnv();
 
 const app = express();
 

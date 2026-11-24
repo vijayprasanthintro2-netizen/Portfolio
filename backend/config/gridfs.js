@@ -22,7 +22,7 @@ export function getBucket() {
   return bucket;
 }
 
-export function toObjectId(id) {
+function toObjectId(id) {
   try {
     return new mongoose.mongo.ObjectId(String(id));
   } catch {

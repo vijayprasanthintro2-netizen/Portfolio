@@ -10,7 +10,6 @@ import {
   removeAsset,
   removeAssetByKey,
   saveAsset,
-  toObjectId,
   getBucket,
 } from '../config/gridfs.js';
 

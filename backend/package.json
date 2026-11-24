@@ -1,7 +1,7 @@
 {
   "name": "vijayprasanth-portfolio-backend",
   "version": "1.0.0",
-  "description": "Backend for the Vijayprasanth S portfolio — contact API (Express + MongoDB)",
+  "description": "Backend for the Vijayprasanth S portfolio — contact, CMS and asset API (Express + MongoDB)",
   "main": "server.js",
   "type": "module",
   "scripts": {
