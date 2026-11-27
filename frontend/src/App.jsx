@@ -20,6 +20,7 @@ import { CustomCursor } from './components/CustomCursor';
 import { BackToTop } from './components/BackToTop';
 import { useTheme } from './hooks/useTheme';
 import { ContentProvider } from './content/ContentContext';
+import { scrollToHashTarget } from './lib/hashRoute';
 
 // The admin panel is a separate route and never needed by portfolio visitors.
 // Splitting it out keeps its editor UI out of the initial bundle.
@@ -52,9 +53,14 @@ const Static = {
 function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash);
   useEffect(() => {
-    const onHash = () => setHash(window.location.hash);
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const sync = () => setHash(window.location.hash);
+    window.addEventListener('hashchange', sync);
+    // pushState-based public navigation and history traversal use popstate.
+    window.addEventListener('popstate', sync);
+    return () => {
+      window.removeEventListener('hashchange', sync);
+      window.removeEventListener('popstate', sync);
+    };
   }, []);
   return hash;
 }
@@ -62,11 +68,31 @@ function useHashRoute() {
 function Portfolio() {
   const { theme, toggleTheme } = useTheme();
   const [booted, setBooted] = useState(false);
+  const [scrollReady, setScrollReady] = useState(false);
   const onBootDone = useCallback(() => setBooted(true), []);
+  const onPreloaderExit = useCallback(() => setScrollReady(true), []);
+
+  useEffect(() => {
+    if (!scrollReady) return undefined;
+
+    // The sections mount only after the preloader, so the browser's native
+    // fragment scroll has already been missed on refresh. Restore it once the
+    // DOM exists, and keep it in sync with history navigation afterwards.
+    // Effects run after the DOM commit, and Preloader only reports its exit
+    // after the scroll lock is released, so the target is ready now.
+    scrollToHashTarget();
+    window.addEventListener('popstate', scrollToHashTarget);
+    window.addEventListener('hashchange', scrollToHashTarget);
+
+    return () => {
+      window.removeEventListener('popstate', scrollToHashTarget);
+      window.removeEventListener('hashchange', scrollToHashTarget);
+    };
+  }, [scrollReady]);
 
   return (
     <>
-      <Preloader onDone={onBootDone} />
+      <Preloader onDone={onBootDone} onExited={onPreloaderExit} />
       {booted && (
         <>
           <Static.CustomCursor />

@@ -53,7 +53,7 @@ function isSettled(value) {
 
 // Premium one-time boot sequence. The portfolio behind it is mounted only after
 // this calls onDone, so every milestone below represents real readiness.
-export function Preloader({ onDone }) {
+export function Preloader({ onDone, onExited }) {
   const reduced = usePrefersReducedMotion();
   const { status: contentStatus } = useContent();
 
@@ -92,6 +92,14 @@ export function Preloader({ onDone }) {
     },
     []
   );
+
+  // The scroll lock is released by unmounting, not by starting the fade-out.
+  // Notify the app only after that commit so hash restoration can actually move
+  // the document on a refreshed deep link.
+  useEffect(() => {
+    if (mounted || !doneRef.current) return;
+    if (onExited) onExited();
+  }, [mounted, onExited]);
 
   // Signal 01 — React/interface is mounted. A timer (not rAF) keeps this
   // reliable when the tab is backgrounded during load.

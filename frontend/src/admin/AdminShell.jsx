@@ -17,8 +17,8 @@ import { sectionNav, navGroups, sections, getSectionMeta } from './sections';
 import { SectionForm, validateSection } from './FormBuilder';
 import { readAdminTheme, applyAdminTheme, ADMIN_THEME_KEY } from './theme';
 import { normalizeSectionValue } from '../content/shape';
-import { getScrollBehavior } from '../lib/scrollTracker';
 import { Toast, ConfirmDialog } from './ui';
+import { ProjectPreview } from './ProjectPreview';
 import { Dashboard } from './Dashboard';
 import { ResumePage } from './ResumePage';
 import { MediaPage } from './MediaPage';
@@ -30,6 +30,28 @@ import {
   adminSaveSection,
   adminResetSection,
 } from '../content/api';
+
+// applyDesign() writes these inline custom properties onto <html>. Removing
+// them individually when leaving Design preserves unrelated inline styles.
+const DESIGN_CSS_VARS = [
+  '--accent',
+  '--accent-1',
+  '--accent-blue',
+  '--accent-blue-glow',
+  '--accent-1-soft',
+  '--accent-2',
+  '--accent-3',
+  '--grad-blue',
+  '--grad-primary',
+  '--grad-text',
+  '--font-display',
+  '--font-body',
+  '--font-mono',
+  '--radius-sm',
+  '--radius',
+  '--radius-lg',
+  '--radius-xl',
+];
 
 export function AdminShell({ onLogout }) {
   const { content, refresh } = useContent();
@@ -46,12 +68,22 @@ export function AdminShell({ onLogout }) {
   const [saving, setSaving] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [confirmNav, setConfirmNav] = useState(null);
+  const [previewIndex, setPreviewIndex] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const toastId = useRef(0);
   const toastTimers = useRef(new Map());
   const prevActive = useRef(activeKey);
+  const mainRef = useRef(null);
+  const dirtyRef = useRef(dirty);
+  const activeKeyRef = useRef(activeKey);
+  const sectionCache = useRef(new Map());
+  const sectionRequests = useRef(new Map());
+  dirtyRef.current = dirty;
+  activeKeyRef.current = activeKey;
 
   const meta = sections[activeKey];
   const navItem = getSectionMeta(activeKey);
+  const previewProject = previewIndex !== null && Array.isArray(draft) ? draft[previewIndex] : null;
 
   const setTheme = useCallback((value) => {
     setThemeState(value);
@@ -107,15 +139,46 @@ export function AdminShell({ onLogout }) {
     [onLogout, toast]
   );
 
+  const fetchSection = useCallback((key, sectionMeta) => {
+    if (sectionCache.current.has(key)) {
+      return Promise.resolve(sectionCache.current.get(key));
+    }
+    if (sectionRequests.current.has(key)) {
+      return sectionRequests.current.get(key);
+    }
+    const request = adminGetSection(key)
+      .then((res) => {
+        const value = normalizeSectionValue(sectionMeta, res?.data) ?? null;
+        sectionCache.current.set(key, value);
+        return value;
+      })
+      .finally(() => {
+        sectionRequests.current.delete(key);
+      });
+    sectionRequests.current.set(key, request);
+    return request;
+  }, []);
+
+  const resetContentScroll = useCallback(() => {
+    // .ad-content is the admin scroller; the document itself never scrolls.
+    if (mainRef.current) mainRef.current.scrollTop = 0;
+  }, []);
+
+  const handleDraftChange = useCallback((value) => {
+    setDraft(value);
+    setDirty(true);
+  }, []);
+
   const navigate = useCallback(
     (key) => {
+      activeKeyRef.current = key;
       setActiveKey(key);
       setDrawerOpen(false);
       const hash = key === 'dashboard' ? '#/admin' : `#/admin/${key}`;
       if (window.location.hash !== hash) window.location.hash = hash;
-      window.scrollTo({ top: 0, behavior: getScrollBehavior() });
+      resetContentScroll();
     },
-    []
+    [resetContentScroll]
   );
 
   const open = useCallback(
@@ -129,16 +192,35 @@ export function AdminShell({ onLogout }) {
     [activeKey, dirty, navigate]
   );
 
-  // Browser back/forward inside the hash route.
+  // Browser back/forward inside the hash route. The hash is the single source
+  // of truth; if a draft is dirty, restore the URL instead of drifting out of
+  // sync with the section the user is still editing.
   useEffect(() => {
     const onHash = () => {
       const match = window.location.hash.match(/^#\/admin\/([\w-]+)/);
       const key = match && sectionNav.some((s) => s.key === match[1]) ? match[1] : 'dashboard';
-      setActiveKey((current) => (dirty && current !== key ? current : key));
+      if (dirtyRef.current && activeKeyRef.current !== key) {
+        const currentHash =
+          activeKeyRef.current === 'dashboard'
+            ? '#/admin'
+            : `#/admin/${activeKeyRef.current}`;
+        if (window.location.hash !== currentHash) {
+          window.history.replaceState(
+            null,
+            '',
+            `${window.location.pathname}${window.location.search}${currentHash}`
+          );
+        }
+        return;
+      }
+      activeKeyRef.current = key;
+      setActiveKey(key);
+      setDrawerOpen(false);
+      resetContentScroll();
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
-  }, [dirty]);
+  }, [resetContentScroll]);
 
   // Warn about unsaved changes when leaving the page entirely.
   useEffect(() => {
@@ -151,8 +233,9 @@ export function AdminShell({ onLogout }) {
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
-  // Load a section only when its editor is open. Keeping callbacks stable
-  // prevents content refreshes from wiping a draft that is being edited.
+  // Load a section only when its editor is open. Drafts are cached for this
+  // admin session and concurrent requests are deduplicated, so revisiting a
+  // section (or StrictMode's second effect run) does not refetch or remount it.
   useEffect(() => {
     if (!meta) {
       setReady(true);
@@ -163,12 +246,20 @@ export function AdminShell({ onLogout }) {
     let cancelled = false;
     setReady(false);
     setDirty(false);
-    setDraft(null);
+    setPreviewIndex(null);
     setLoadError('');
-    adminGetSection(activeKey)
-      .then((res) => {
+
+    if (sectionCache.current.has(activeKey)) {
+      setDraft(sectionCache.current.get(activeKey));
+      setReady(true);
+      return undefined;
+    }
+
+    setDraft(null);
+    fetchSection(activeKey, meta)
+      .then((value) => {
         if (!cancelled) {
-          setDraft(normalizeSectionValue(meta, res.data) ?? null);
+          setDraft(value);
           setReady(true);
         }
       })
@@ -186,7 +277,7 @@ export function AdminShell({ onLogout }) {
     return () => {
       cancelled = true;
     };
-  }, [activeKey, meta, handleError, toast]);
+  }, [activeKey, meta, reloadKey, fetchSection, handleError, toast]);
 
   // Live design preview while editing design tokens.
   useEffect(() => {
@@ -195,7 +286,7 @@ export function AdminShell({ onLogout }) {
     } else if (prevActive.current === 'design') {
       const root = document.documentElement;
       const colorScheme = root.style.colorScheme;
-      root.removeAttribute('style');
+      DESIGN_CSS_VARS.forEach((name) => root.style.removeProperty(name));
       root.style.colorScheme = colorScheme;
       if (content.design) applyDesign(content.design);
     }
@@ -211,6 +302,7 @@ export function AdminShell({ onLogout }) {
     setSaving(true);
     try {
       await adminSaveSection(activeKey, draft);
+      sectionCache.current.set(activeKey, draft);
       setDirty(false);
       toast('Section published — the site updates instantly.');
       refresh();
@@ -221,10 +313,27 @@ export function AdminShell({ onLogout }) {
     }
   };
 
+  const onCancel = async () => {
+    if (!dirty) return;
+    try {
+      const res = await adminGetSection(activeKey);
+      const value = normalizeSectionValue(meta, res.data) ?? null;
+      sectionCache.current.set(activeKey, value);
+      setDraft(value);
+      setPreviewIndex(null);
+      setDirty(false);
+      toast('Unsaved changes discarded.');
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
   const onReset = async () => {
     try {
       const res = await adminResetSection(activeKey);
-      setDraft(normalizeSectionValue(meta, res.data) ?? null);
+      const value = normalizeSectionValue(meta, res.data) ?? null;
+      sectionCache.current.set(activeKey, value);
+      setDraft(value);
       setDirty(true);
       toast('Section reset to defaults — press Publish to save.');
     } catch (err) {
@@ -267,7 +376,7 @@ export function AdminShell({ onLogout }) {
                   <strong>Could not load this section.</strong>
                   <p>{loadError}</p>
                 </div>
-                <button type="button" className="af-btn ghost" onClick={() => window.location.reload()}>
+                <button type="button" className="af-btn ghost" onClick={() => setReloadKey((key) => key + 1)}>
                   Retry
                 </button>
               </div>
@@ -275,10 +384,8 @@ export function AdminShell({ onLogout }) {
               <SectionForm
                 meta={meta}
                 value={draft}
-                onChange={(value) => {
-                  setDraft(value);
-                  setDirty(true);
-                }}
+                onChange={handleDraftChange}
+                onPreview={activeKey === 'projects' ? setPreviewIndex : undefined}
               />
             )}
           </section>
@@ -286,6 +393,9 @@ export function AdminShell({ onLogout }) {
           <div className="ad-editor-actions">
             <div className="ad-editor-actions-inner">
               {dirty && <span className="ad-unsaved"><AlertCircle size={15} /> Unsaved changes</span>}
+              <button type="button" className="af-btn ghost" onClick={onCancel} disabled={!dirty || saving || !ready || loadError}>
+                Cancel
+              </button>
               <button type="button" className="af-btn ghost" onClick={onReset} disabled={saving || !ready || loadError}>
                 <RotateCcw size={16} />
                 Reset
@@ -301,6 +411,10 @@ export function AdminShell({ onLogout }) {
               </button>
             </div>
           </div>
+
+          {activeKey === 'projects' && previewProject && (
+            <ProjectPreview project={previewProject} onClose={() => setPreviewIndex(null)} />
+          )}
         </div>
       );
     }
@@ -419,7 +533,7 @@ export function AdminShell({ onLogout }) {
           </div>
         </header>
 
-        <main className="ad-content">{renderContent()}</main>
+        <main className="ad-content" ref={mainRef}>{renderContent()}</main>
       </div>
 
       {confirmNav && (

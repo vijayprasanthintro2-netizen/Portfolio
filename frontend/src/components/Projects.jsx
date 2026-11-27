@@ -7,6 +7,8 @@ import { SpotlightCard } from './SpotlightCard';
 import { Magnetic } from './Magnetic';
 import { useContent } from '../content/ContentContext';
 import { asArray, normalizeList } from '../content/shape';
+import { stripHtml } from '../lib/richText';
+import { normalizeProjects } from '../lib/normalizeProject';
 
 // Dialogs are only needed after a user action, so keep them out of the initial bundle.
 const ProjectModal = lazy(() =>
@@ -20,7 +22,7 @@ const CardButtons = memo(function CardButtons({ project, onDetails }) {
         <Magnetic>
           <a className="btn btn-primary btn-sm" href={project.demo} target="_blank" rel="noreferrer">
             <Rocket className="btn-icon" aria-hidden="true" />
-            Live Demo
+            Live
             <ExternalLink className="btn-icon" aria-hidden="true" />
           </a>
         </Magnetic>
@@ -31,7 +33,7 @@ const CardButtons = memo(function CardButtons({ project, onDetails }) {
           title="No live URL available for this project"
         >
           <Rocket className="btn-icon" aria-hidden="true" />
-          Live Demo
+          Live
           <span className="sr-only">(not available)</span>
         </span>
       )}
@@ -60,7 +62,8 @@ const ProjectHead = memo(function ProjectHead({ project }) {
           Featured
         </span>
       )}
-      <span className="project-role">{project.role}</span>
+      <span className="project-role">{stripHtml(project.role)}</span>
+      {project.category && <span className="project-category">{stripHtml(project.category)}</span>}
     </div>
   );
 });
@@ -68,8 +71,14 @@ const ProjectHead = memo(function ProjectHead({ project }) {
 export function Projects() {
   const [selected, setSelected] = useState(null);
   const { content, status } = useContent();
-  const savedProjects = useMemo(() => normalizeList(content.projects), [content.projects]);
-  const saved = savedProjects || defaultProjects;
+  const savedProjects = useMemo(
+    () => normalizeProjects(normalizeList(content.projects)),
+    [content.projects]
+  );
+  const saved = useMemo(
+    () => savedProjects || normalizeProjects(defaultProjects),
+    [savedProjects]
+  );
 
   const projects = useMemo(
     () => [...saved].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)),
@@ -109,21 +118,21 @@ export function Projects() {
                     <div className="project-body">
                       <ProjectHead project={project} />
                       <h3 className="project-title">{project.name}</h3>
-                      <p className="project-desc">{project.short}</p>
+                      <p className="project-desc">{stripHtml(project.short)}</p>
 
                       <div className="project-stack" aria-label="Technologies used">
-                        {asArray(project.stack).map((tech) => (
-                          <span className="chip" key={tech}>
+                        {asArray(project.stack).map((tech, index) => (
+                          <span className="chip" key={`${index}-${stripHtml(tech)}`}>
                             <span className="chip-dot" aria-hidden="true" />
-                            {tech}
+                            {stripHtml(tech)}
                           </span>
                         ))}
                       </div>
 
                       <div className="project-features" aria-label="Key features">
-                        {asArray(project.features).slice(0, 6).map((feature) => (
-                          <span key={feature} className="feature-tick">
-                            ✓ {feature}
+                        {asArray(project.features).map((feature, index) => (
+                          <span key={`${index}-${stripHtml(feature)}`} className="feature-tick">
+                            ✓ {stripHtml(feature)}
                           </span>
                         ))}
                       </div>
@@ -143,13 +152,13 @@ export function Projects() {
                       <div className="project-body">
                         <ProjectHead project={project} />
                         <h3 className="project-title">{project.name}</h3>
-                        <p className="project-desc">{project.short}</p>
+                        <p className="project-desc">{stripHtml(project.short)}</p>
 
                         <div className="project-stack" aria-label="Technologies used">
-                          {asArray(project.stack).map((tech) => (
-                            <span className="chip" key={tech}>
+                          {asArray(project.stack).map((tech, index) => (
+                            <span className="chip" key={`${index}-${stripHtml(tech)}`}>
                               <span className="chip-dot" aria-hidden="true" />
-                              {tech}
+                              {stripHtml(tech)}
                             </span>
                           ))}
                         </div>

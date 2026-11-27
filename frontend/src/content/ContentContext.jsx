@@ -1,8 +1,55 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../config';
 import { resolveAssetUrls } from './assetUrl';
+import { localContent } from './localContent';
+import { normalizeProjects } from '../lib/normalizeProject';
 
 const ContentContext = createContext(null);
+
+// StrictMode runs the initial effect twice. Share only the in-flight request
+// so the public aggregate API is called once even when one caller aborts.
+let contentPayloadRequest = null;
+
+function getContentPayload() {
+  if (!contentPayloadRequest) {
+    contentPayloadRequest = fetch(`${api.baseUrl}/content`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Content API ${res.status}`);
+        const data = await res.json();
+        return data.content || {};
+      })
+      .finally(() => {
+        contentPayloadRequest = null;
+      });
+  }
+  return contentPayloadRequest;
+}
+
+// Local content is the safe, checked-in fallback captured from the public
+// portfolio. A reachable CMS can extend or override it, but the site never
+// depends on the production database to render the copied records.
+function mergeContent(base, incoming) {
+  if (!incoming || typeof incoming !== 'object') return base;
+  const merged = { ...base };
+  for (const [key, value] of Object.entries(incoming)) {
+    const current = merged[key];
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      current &&
+      typeof current === 'object' &&
+      !Array.isArray(current)
+    ) {
+      merged[key] = mergeContent(current, value);
+    } else {
+      merged[key] = value;
+    }
+  }
+  return merged;
+}
+
+const initialContent = resolveAssetUrls(localContent);
 
 export function hexToRgba(hex, alpha) {
   let h = String(hex || '').replace('#', '').trim();
@@ -123,16 +170,16 @@ export function applyDesign(design) {
 }
 
 export function ContentProvider({ children }) {
-  const [content, setContent] = useState({});
-  const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
+  const [content, setContent] = useState(initialContent);
+  const [status, setStatus] = useState('ready'); // 'ready' | 'error'
 
   const refresh = useCallback(async (signal) => {
     try {
-      const res = await fetch(`${api.baseUrl}/content`, { signal });
-      if (!res.ok) throw new Error(`Content API ${res.status}`);
-      const data = await res.json();
+      const payload = await getContentPayload();
       if (signal?.aborted) return false;
-      setContent(resolveAssetUrls(data.content || {}));
+      const next = mergeContent(localContent, payload);
+      if (next.projects) next.projects = normalizeProjects(next.projects);
+      setContent(resolveAssetUrls(next));
       setStatus('ready');
       return true;
     } catch (err) {
@@ -143,8 +190,8 @@ export function ContentProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // StrictMode mounts effects twice in development; abort the first request
-    // instead of letting two responses race each other.
+    // The shared in-flight promise prevents duplicate network calls. A caller
+    // that unmounts only skips its own state update, not the shared request.
     const controller = new AbortController();
     refresh(controller.signal);
     return () => controller.abort();

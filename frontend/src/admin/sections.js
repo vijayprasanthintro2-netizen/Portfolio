@@ -25,7 +25,7 @@ import {
 //  records -> the data is an array of records (each rendered with its fields)
 //  strings -> the data is a plain array of strings
 //
-// Field types: text, textarea, number, toggle, color, strings, image, list, object
+// Field types: text, textarea, number, toggle, color, strings, image, list, object, rich
 
 const text = (key, label, opts = {}) => ({ key, label, type: 'text', ...opts });
 const area = (key, label, opts = {}) => ({ key, label, type: 'textarea', ...opts });
@@ -33,6 +33,8 @@ const number = (key, label, opts = {}) => ({ key, label, type: 'number', ...opts
 const toggle = (key, label, opts = {}) => ({ key, label, type: 'toggle', ...opts });
 const color = (key, label, opts = {}) => ({ key, label, type: 'color', ...opts });
 const stringsField = (key, label, opts = {}) => ({ key, label, type: 'strings', ...opts });
+const rich = (key, label, opts = {}) => ({ key, label, type: 'rich', mode: 'document', ...opts });
+const richList = (key, label, opts = {}) => rich(key, label, { mode: 'list', ...opts });
 const imageField = (key, label, opts = {}) => ({ key, label, type: 'image', ...opts });
 const recordList = (key, label, fields, opts = {}) => ({ key, label, type: 'list', fields, ...opts });
 const object = (key, label, fields) => ({ key, label, type: 'object', fields });
@@ -204,35 +206,104 @@ export const sections = {
 
   projects: {
     title: 'Projects',
-    description: 'Portfolio projects. Mark one as featured for the large spotlight card.',
+    description: 'Portfolio projects. Write each record like a document — formatting is saved and shown in View Details.',
     type: 'records',
     nameKey: 'name',
     addLabel: 'Add project',
     fields: [
-      text('id', 'Project id'),
-      text('name', 'Name', { required: true }),
-      text('role', 'Role / subtitle'),
+      text('id', 'Project ID', { hint: 'Used as the stable record key' }),
+      text('name', 'Project name', { required: true }),
+      text('category', 'Project category', { placeholder: 'e.g. E-Commerce, Portfolio, Tools' }),
+      text('role', 'Project subtitle / role'),
       toggle('featured', 'Featured (large card)'),
-      area('short', 'Overview (card)', { required: true }),
-      area('description', 'Full description'),
-      area('problem', 'Problem'),
-      area('approach', 'Approach'),
-      area('outcome', 'Outcome'),
-      stringsField('stack', 'Technology stack'),
-      stringsField('features', 'Key features'),
-      stringsField('challenges', 'Challenges'),
-      stringsField('learned', 'What I learned'),
-      imageField('image', 'Project thumbnail', {
+      imageField('image', 'Project image', {
         hint: 'Uploaded to the media library with a stable URL. Shown only in View Details.',
         asset: true,
       }),
+      text('alt', 'Image alt text'),
+      number('order', 'Display order', { min: 0 }),
+
+      rich('short', 'Card overview', {
+        required: true,
+        hint: 'A short summary shown on the project card',
+        placeholder: 'Write a concise overview of the project…',
+      }),
+      rich('description', 'Full description', {
+        hint: 'Use headings, paragraphs and bold text to structure the story',
+        placeholder: 'Describe what the project is and what it does…',
+      }),
+
+      richList('features', 'Key features', {
+        hint: 'Click the bullet button, then press Enter for the next feature',
+        placeholder: 'User authentication and authorization…',
+      }),
+      richList('additionalFeatures', 'Additional features', {
+        hint: 'Optional extra highlights',
+        placeholder: 'Responsive user interface…',
+      }),
+
+      rich('problem', 'Problem', {
+        placeholder: 'What problem were you solving?',
+      }),
+      rich('approach', 'Approach', {
+        placeholder: 'How did you build and structure the solution?',
+      }),
+      rich('outcome', 'Outcome', {
+        placeholder: 'What was the result or impact?',
+      }),
+
+      richList('stack', 'Technology stack', {
+        hint: 'Each item becomes a technology chip on the card',
+        placeholder: 'React.js',
+      }),
+      richList('tools', 'Tools and frameworks', {
+        placeholder: 'Vite, Git, Postman…',
+      }),
+
+      text('demo', 'Live Demo URL', { hint: 'Leave blank if there is no live URL' }),
+      text('github', 'GitHub URL'),
       stringsField('screenshots', 'Screenshot URLs', {
         hint: 'Copy stable URLs from the Media Library.',
       }),
-      text('alt', 'Image alt text'),
-      text('github', 'GitHub URL'),
-      text('demo', 'Live demo URL', { hint: 'Leave blank if there is no live URL' }),
-      number('order', 'Display order', { min: 0 }),
+
+      richList('challenges', 'Challenges', {
+        placeholder: 'Describe a challenge you overcome…',
+      }),
+      richList('learned', 'What I learned', {
+        placeholder: 'Describe something you learned…',
+      }),
+    ],
+    groups: [
+      {
+        title: '1. Basic project information',
+        description: 'Identity, category, image and ordering.',
+        fields: ['id', 'name', 'category', 'role', 'featured', 'image', 'alt', 'order'],
+      },
+      {
+        title: '2. Project description',
+        description: 'The card summary and the full formatted description.',
+        fields: ['short', 'description'],
+      },
+      {
+        title: '3. Project features',
+        description: 'Use bullet lists so each feature is easy to add, edit and reorder.',
+        fields: ['features', 'additionalFeatures'],
+      },
+      {
+        title: '4. Project explanation',
+        description: 'Tell the story behind the project.',
+        fields: ['problem', 'approach', 'outcome'],
+      },
+      {
+        title: '5. Technologies',
+        description: 'Technologies, tools and frameworks used.',
+        fields: ['stack', 'tools'],
+      },
+      {
+        title: '6. Project links & details',
+        description: 'Live links, media and supporting details.',
+        fields: ['demo', 'github', 'screenshots', 'challenges', 'learned'],
+      },
     ],
   },
 

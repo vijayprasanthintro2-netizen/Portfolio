@@ -15,12 +15,11 @@ export const profile = {
   ],
   location: 'Tiruchengode, Tamil Nadu, India',
   availability: 'Open to internships and opportunities',
-  // profile photo for the hero — '' means no photo yet,
-  // or upload one from Admin > Profile (it's stored in MongoDB)
-  image: '',
-  // Set this to a file placed in frontend/public (e.g. '/Vijayprasanth-Resume.pdf')
-  // to enable the "Download Resume" button in the hero.
+  // Local copy of the published profile photo (downloaded from the public API).
+  image: '/images/profile.webp',
+  // The live resume is byte-for-byte identical to this local file.
   resume: '/Vijayprasanth-Resume.pdf',
+  heroButtons: [],
   education: {
     degree: 'Bachelor of Computer Applications (BCA)',
     short: 'BCA',
@@ -35,6 +34,7 @@ export const profile = {
     company: 'Imaginative Technology Pvt Ltd',
     period: '01/2026 – 02/2026',
     duration: '1 month',
+    tags: ['MongoDB', 'Express.js', 'REST APIs', 'API Integration'],
     points: [
       'Completed a one-month internship in Full Stack Development.',
       'Worked with MongoDB database management and API integration.',

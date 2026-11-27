@@ -4,6 +4,15 @@ const API_PREFIX = '/api/';
 const CONTENT_ASSET_PREFIX = '/api/content/asset/';
 const FILE_ASSET_PREFIX = '/api/assets/';
 
+// Publicly downloaded copies of the deployed assets. Exact URLs are mapped so
+// future admin uploads with different keys are never overridden.
+const LOCAL_ASSET_OVERRIDES = new Map([
+  ['/api/content/asset/profile/image?v=1795333625328', '/images/profile.webp'],
+  ['/api/assets/k/image-1795714111998-yuhzog', '/images/vijaycart.png'],
+  ['/api/assets/k/image-1795715088987-b13pgq', '/images/poultry.png'],
+  ['/api/assets/k/resume?download=1', '/Vijayprasanth-Resume.pdf'],
+]);
+
 function trimTrailingSlash(value) {
   return String(value || '').replace(/\/+$/, '');
 }
@@ -36,6 +45,7 @@ export function resolveAssetUrl(value) {
   const trimmed = value.trim();
   if (!trimmed) return '';
   if (/^(data:|https?:\/\/|\/\/|blob:)/i.test(trimmed)) return trimmed;
+  if (LOCAL_ASSET_OVERRIDES.has(trimmed)) return LOCAL_ASSET_OVERRIDES.get(trimmed);
   if (trimmed.startsWith(CONTENT_ASSET_PREFIX) || trimmed.startsWith(FILE_ASSET_PREFIX)) {
     return withApiBase(trimmed);
   }

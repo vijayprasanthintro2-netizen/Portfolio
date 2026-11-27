@@ -1,4 +1,5 @@
 import { api } from '../config';
+import { normalizeProjects } from '../lib/normalizeProject';
 
 const TOKEN_KEY = 'vp-admin-token';
 const USER_KEY = 'vp-admin-user';
@@ -36,7 +37,7 @@ export const adminToken = {
   },
 };
 
-async function http(path, { method = 'GET', body, auth = false } = {}) {
+async function request(path, { method = 'GET', body, auth = false } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (auth) {
     const token = adminToken.get();
@@ -56,12 +57,33 @@ async function http(path, { method = 'GET', body, auth = false } = {}) {
   return data;
 }
 
+// React StrictMode can run mount effects twice. Share only the in-flight GET
+// (never a completed response) so no admin page issues a duplicate request.
+const inFlight = new Map();
+
+function http(path, options = {}) {
+  const method = options.method || 'GET';
+  if (method !== 'GET') return request(path, options);
+
+  const key = `${options.auth ? adminToken.get() || '' : ''}:${path}`;
+  let promise = inFlight.get(key);
+  if (!promise) {
+    promise = request(path, options).finally(() => inFlight.delete(key));
+    inFlight.set(key, promise);
+  }
+  return promise;
+}
+
 export function adminLogin(username, password) {
   return http('/admin/login', { method: 'POST', body: { username, password } });
 }
 
-export function adminGetSection(section) {
-  return http(`/content/${section}`, { auth: true });
+export async function adminGetSection(section) {
+  const result = await http(`/content/${section}`, { auth: true });
+  if (section === 'projects' && result?.data) {
+    result.data = normalizeProjects(result.data);
+  }
+  return result;
 }
 
 export function adminSaveSection(section, data) {

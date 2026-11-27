@@ -305,7 +305,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 26px 30px 70px;
+  padding: 26px 30px 110px;
   scrollbar-gutter: stable;
 }
 
@@ -687,15 +687,16 @@
   padding: 18px; background: rgba(3, 6, 14, 0.76); backdrop-filter: blur(6px);
 }
 .ad-modal {
-  width: 100%; max-width: 460px; max-height: 90dvh; overflow: auto;
+  width: 100%; max-width: 460px; max-height: 90dvh;
+  display: flex; flex-direction: column; overflow: hidden;
   border: 1px solid var(--admin-border); border-radius: 18px; background: var(--admin-panel);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
 }
 .ad-modal.wide { max-width: 900px; }
-.ad-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px 20px; border-bottom: 1px solid var(--admin-border); }
+.ad-modal-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px 20px; border-bottom: 1px solid var(--admin-border); }
 .ad-modal-head h3 { margin: 0; font-size: 0.98rem; overflow-wrap: anywhere; }
 .ad-modal-head .ad-icon-btn { width: 34px; height: 34px; font-size: 1.1rem; }
-.ad-modal-body { padding: 20px; }
+.ad-modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 20px; }
 .ad-confirm-message { margin: 0 0 22px; font-size: 0.88rem; line-height: 1.6; color: var(--admin-text-2); }
 .ad-confirm-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 9px; }
 .ad-pdf-frame { width: 100%; height: min(65dvh, 620px); border: 0; border-radius: 12px; background: #fff; }
@@ -719,7 +720,7 @@
   .ad-menu-btn { display: inline-flex; }
   .ad-topbar { padding: 11px 16px; min-height: 66px; }
   .ad-topbar-user { display: none; }
-  .ad-content { padding: 18px 16px 80px; }
+  .ad-content { padding: 18px 16px 120px; }
   .ad-dashboard-grid { grid-template-columns: 1fr; }
   .ad-resume-hero { grid-template-columns: 1fr; gap: 16px; }
   .ad-resume-visual { flex-direction: row; justify-content: flex-start; }
@@ -732,7 +733,7 @@
   .ad-topbar-title p { display: none; }
   .ad-topbar-title h1 { font-size: 1.02rem; }
   .topbar-site { display: none; }
-  .ad-content { padding: 14px 12px 80px; }
+  .ad-content { padding: 14px 12px 120px; }
   .ad-card { padding: 17px 15px; border-radius: 15px; }
   .ad-welcome { align-items: flex-start; flex-direction: column; gap: 14px; }
   .ad-welcome-actions { width: 100%; }

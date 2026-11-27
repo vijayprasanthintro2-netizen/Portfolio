@@ -270,8 +270,22 @@
     padding: 12px;
   }
 
+  /* The 12px layer padding already gives the requested 24px total gutters. */
+  .modal {
+    width: 100%;
+    max-height: 90dvh;
+  }
+
   .modal-body {
-    padding: 24px 20px 26px;
+    padding: 20px 16px 24px;
+    gap: 18px;
+  }
+
+  .modal-close {
+    top: 10px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
   }
 
   .modal-image-box {
@@ -486,5 +500,16 @@
   [contenteditable='true'] {
     -webkit-user-select: text;
     user-select: text;
+  }
+}
+
+/* Extra-narrow phones: keep modal text and controls inside 320px screens. */
+@media (max-width: 360px) {
+  .modal-body {
+    padding-inline: 12px;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
   }
 }

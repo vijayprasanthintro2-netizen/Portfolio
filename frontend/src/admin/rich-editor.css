@@ -1,0 +1,430 @@
+/* Rich text editor, grouped project fields and admin-side preview. */
+
+.af-field-rich,
+.af-field-group {
+  grid-column: 1 / -1;
+}
+
+.af-field-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.af-field-group {
+  display: block;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.af-field-group-head {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.af-field-group-head h4 {
+  margin: 0;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 0.98rem;
+  color: var(--admin-text-1);
+}
+
+.af-field-group-head p {
+  margin: 5px 0 0;
+  font-size: 0.78rem;
+  color: var(--admin-text-3);
+}
+
+.af-field-group .af-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.af-record-preview {
+  color: #8fb7ff;
+  border-color: rgba(59, 130, 246, 0.32);
+}
+
+/* ---------- TipTap editor ---------- */
+
+.rt-editor-shell {
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+
+.rt-editor-shell:focus-within {
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.rt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  padding: 8px;
+  border-bottom: 1px solid var(--admin-border);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.rt-tool {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--admin-text-2);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s var(--ease-out), color 0.15s var(--ease-out),
+    border-color 0.15s var(--ease-out);
+}
+
+.rt-tool:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--admin-text-1);
+}
+
+.rt-tool.active {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+
+.rt-tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.rt-tool:focus-visible,
+.af-record-preview:focus-visible {
+  outline: 2px solid var(--admin-accent-2);
+  outline-offset: 2px;
+}
+
+.rt-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--admin-border);
+}
+
+/* Editors grow with their content so wheel/touch input always chains to the
+   single .ad-content scroller instead of getting trapped in a nested box. */
+.rt-editor,
+.rt-preview {
+  min-height: 300px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.rt-editor-content,
+.rt-preview {
+  min-height: 300px;
+  padding: 18px 20px;
+  color: var(--admin-text-1);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  outline: none;
+}
+
+.rt-editor-content > * + *,
+.rt-preview > * + * {
+  margin-top: 0.75em;
+}
+
+.rt-editor-content p,
+.rt-preview p {
+  margin: 0 0 0.75em;
+}
+
+.rt-editor-content h1,
+.rt-editor-content h2,
+.rt-editor-content h3,
+.rt-preview h1,
+.rt-preview h2,
+.rt-preview h3 {
+  margin: 1em 0 0.45em;
+  color: var(--admin-text-1);
+  line-height: 1.25;
+}
+
+.rt-editor-content h1,
+.rt-preview h1 { font-size: 1.7em; }
+.rt-editor-content h2,
+.rt-preview h2 { font-size: 1.4em; }
+.rt-editor-content h3,
+.rt-preview h3 { font-size: 1.16em; }
+
+.rt-editor-content ul,
+.rt-editor-content ol,
+.rt-preview ul,
+.rt-preview ol {
+  margin: 0 0 0.8em;
+  padding-left: 1.45rem;
+  list-style-position: outside;
+}
+
+/* The global base reset removes markers; CMS lists need them back. */
+.rt-editor-content ul,
+.rt-preview ul { list-style-type: disc; }
+.rt-editor-content ol,
+.rt-preview ol { list-style-type: decimal; }
+.rt-editor-content ul ul,
+.rt-preview ul ul { list-style-type: circle; }
+.rt-editor-content ol ol,
+.rt-preview ol ol { list-style-type: lower-alpha; }
+
+.rt-editor-content li,
+.rt-preview li {
+  margin: 0.28em 0;
+}
+
+.rt-editor-content li p,
+.rt-preview li p {
+  margin: 0;
+}
+
+.rt-editor-content a,
+.rt-preview a {
+  color: #8fb7ff;
+  text-underline-offset: 3px;
+}
+
+.rt-editor-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--admin-text-3);
+  pointer-events: none;
+}
+
+/* ---------- Admin project preview ---------- */
+
+.project-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pp-header {
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+}
+
+.pp-header > img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  background: var(--admin-bg);
+}
+
+.pp-image-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 180px;
+  color: var(--admin-text-3);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pp-heading {
+  padding: 18px;
+}
+
+.pp-heading h2 {
+  margin: 0;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 1.35rem;
+  color: var(--admin-text-1);
+}
+
+.pp-heading p {
+  margin: 6px 0 0;
+  color: var(--admin-text-2);
+  font-size: 0.88rem;
+}
+
+.pp-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pp-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-2);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pp-badge.featured {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.12);
+  color: #8fb7ff;
+}
+
+.pp-block {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pp-block h4 {
+  margin: 0 0 10px;
+  color: var(--admin-accent-2);
+  font-size: 0.9rem;
+}
+
+.pp-story-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.project-preview .rich-content {
+  color: var(--admin-text-2);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.project-preview .rich-content h1,
+.project-preview .rich-content h2,
+.project-preview .rich-content h3 {
+  color: var(--admin-text-1);
+}
+
+.project-preview .rich-content a {
+  color: #8fb7ff;
+}
+
+.pp-empty {
+  margin: 0;
+  color: var(--admin-text-3);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.pp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pp-disabled {
+  opacity: 0.65;
+}
+
+/* Light admin theme parity with admin-premium.css. */
+:root:not([data-admin-theme='dark']) .af-field-group,
+:root:not([data-admin-theme='dark']) .rt-editor-shell,
+:root:not([data-admin-theme='dark']) .rt-toolbar,
+:root:not([data-admin-theme='dark']) .pp-block,
+:root:not([data-admin-theme='dark']) .pp-header {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+:root:not([data-admin-theme='dark']) .rt-editor,
+:root:not([data-admin-theme='dark']) .rt-preview {
+  background: #fff;
+}
+
+:root:not([data-admin-theme='dark']) .rt-editor-content,
+:root:not([data-admin-theme='dark']) .rt-preview,
+:root:not([data-admin-theme='dark']) .project-preview .rich-content {
+  color: #334155;
+}
+
+:root:not([data-admin-theme='dark']) .rt-tool {
+  color: #475569;
+}
+
+:root:not([data-admin-theme='dark']) .rt-tool:hover:not(:disabled) {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+:root:not([data-admin-theme='dark']) .rt-tool.active {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+:root:not([data-admin-theme='dark']) .af-field-group-head h4,
+:root:not([data-admin-theme='dark']) .pp-heading h2,
+:root:not([data-admin-theme='dark']) .rt-editor-content h1,
+:root:not([data-admin-theme='dark']) .rt-editor-content h2,
+:root:not([data-admin-theme='dark']) .rt-editor-content h3,
+:root:not([data-admin-theme='dark']) .rt-preview h1,
+:root:not([data-admin-theme='dark']) .rt-preview h2,
+:root:not([data-admin-theme='dark']) .rt-preview h3,
+:root:not([data-admin-theme='dark']) .project-preview .rich-content h1,
+:root:not([data-admin-theme='dark']) .project-preview .rich-content h2,
+:root:not([data-admin-theme='dark']) .project-preview .rich-content h3 {
+  color: #0f172a;
+}
+
+:root:not([data-admin-theme='dark']) .af-record-preview {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+@media (max-width: 900px) {
+  .af-field-group .af-fields,
+  .pp-story-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .af-field-group {
+    padding: 14px;
+  }
+
+  .rt-toolbar {
+    gap: 2px;
+    padding: 6px;
+  }
+
+  .rt-tool {
+    width: 30px;
+    height: 30px;
+  }
+
+  .rt-divider {
+    margin: 0 2px;
+  }
+
+  .rt-editor,
+  .rt-preview,
+  .rt-editor-content,
+  .rt-preview {
+    min-height: 260px;
+  }
+
+  .rt-editor-content,
+  .rt-preview {
+    padding: 14px;
+  }
+}

@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Upload, Image as ImageIcon } from 'lucide-react';
+import { memo, useEffect, useRef, useState } from 'react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Copy, Upload, Eye, Image as ImageIcon } from 'lucide-react';
 import { fileToDataUrl } from './imageFile';
 import { adminReplaceAsset, adminUploadAsset } from '../content/api';
 import { resolveAssetUrl } from '../content/assetUrl';
 import { normalizeSectionValue } from '../content/shape';
+import { isEmptyRich } from '../lib/richText';
+import { RichTextField } from './RichTextEditor';
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
@@ -57,6 +59,8 @@ function RecordListEditor({
   addLabel = 'Add item',
   maxItems,
   nameKey,
+  groups,
+  onPreview,
 }) {
   const items = Array.isArray(value) ? value : [];
   const [query, setQuery] = useState('');
@@ -86,7 +90,11 @@ function RecordListEditor({
     if (maxItems && items.length >= maxItems) return;
     const seed = {};
     fields.forEach((f) => {
-      seed[f.key] = f.type === 'toggle' ? false : f.type === 'number' ? 0 : f.type === 'strings' ? [] : f.type === 'list' ? [] : '';
+      if (f.type === 'toggle') seed[f.key] = false;
+      else if (f.type === 'number') seed[f.key] = 0;
+      else if (f.type === 'strings' || f.type === 'list') seed[f.key] = [];
+      else if (f.type === 'rich') seed[f.key] = f.mode === 'list' ? [] : '';
+      else seed[f.key] = '';
     });
     setQuery('');
     onChange([...items, seed]);
@@ -108,13 +116,26 @@ function RecordListEditor({
         <p className="af-search-empty">No records match “{query}”.</p>
       )}
       {visible.map(({ item, index: i }) => (
-        <div className="af-record" key={`${item?.id || item?.name || 'record'}-${i}`}>
+        // The record index is the stable identity here. Using item.id as part
+        // of the key remounted the whole record on every Project ID keystroke.
+        <div className="af-record" key={`record-${i}`}>
           <div className="af-record-head">
             <span className="af-record-index">{String(i + 1).padStart(2, '0')}</span>
             <span className="af-record-title">
               {nameKey ? item[nameKey] || `Record ${i + 1}` : `Record ${i + 1}`}
             </span>
             <span className="af-record-actions">
+              {onPreview && (
+                <button
+                  type="button"
+                  className="af-icon-btn af-record-preview"
+                  onClick={() => onPreview(i)}
+                  title="Preview this project"
+                  aria-label="Preview this project"
+                >
+                  <Eye size={14} />
+                </button>
+              )}
               <button type="button" className="af-icon-btn" onClick={() => duplicate(i)} title="Duplicate" aria-label="Duplicate">
                 <Copy size={14} />
               </button>
@@ -130,7 +151,7 @@ function RecordListEditor({
             </span>
           </div>
           <div className="af-record-body">
-            <Fields fields={fields} value={item} onChange={(v) => updateItem(i, v)} />
+            <Fields fields={fields} value={item} onChange={(v) => updateItem(i, v)} groups={groups} />
           </div>
         </div>
       ))}
@@ -144,10 +165,52 @@ function RecordListEditor({
   );
 }
 
-export function Fields({ fields, value = {}, onChange }) {
+export function Fields({ fields, value = {}, onChange, groups }) {
+  const allFields = Array.isArray(fields) ? fields : [];
+
+  if (Array.isArray(groups) && groups.length) {
+    const groupedKeys = new Set(groups.flatMap((group) => group.fields || []));
+    const renderGroup = (title, description, groupFields, key) => {
+      if (!groupFields.length) return null;
+      return (
+        <section className="af-field-group" key={key}>
+          <div className="af-field-group-head">
+            <h4>{title}</h4>
+            {description && <p>{description}</p>}
+          </div>
+          <div className="af-fields">
+            {groupFields.map((field) => (
+              <Field
+                key={field.key}
+                field={field}
+                value={value ? value[field.key] : undefined}
+                onChange={(v) => onChange({ ...clone(value), [field.key]: v })}
+              />
+            ))}
+          </div>
+        </section>
+      );
+    };
+
+    const ungrouped = allFields.filter((field) => !groupedKeys.has(field.key));
+    return (
+      <div className="af-field-groups">
+        {groups.map((group, index) =>
+          renderGroup(
+            group.title,
+            group.description,
+            (group.fields || []).map((key) => allFields.find((field) => field.key === key)).filter(Boolean),
+            group.title || `group-${index}`
+          )
+        )}
+        {renderGroup('Additional settings', '', ungrouped, 'ungrouped')}
+      </div>
+    );
+  }
+
   return (
     <div className="af-fields">
-      {fields.map((field) => (
+      {allFields.map((field) => (
         <Field key={field.key} field={field} value={value ? value[field.key] : undefined} onChange={(v) => onChange({ ...clone(value), [field.key]: v })} />
       ))}
     </div>
@@ -286,6 +349,8 @@ function Field({ field, value, onChange }) {
           />
         </div>
       );
+    case 'rich':
+      return <RichTextField field={field} value={value} onChange={onChange} />;
     case 'number':
       return (
         <div className="af-field">
@@ -380,18 +445,28 @@ function Field({ field, value, onChange }) {
 }
 
 // Renders any section based on its meta (object / records / strings).
-export function SectionForm({ meta, value, onChange }) {
+// Memoized so unrelated AdminShell state (toasts, saving flag, drawer) does not
+// rebuild the large form tree on every keystroke elsewhere.
+export const SectionForm = memo(function SectionForm({ meta, value, onChange, onPreview }) {
   const safeValue = normalizeSectionValue(meta, value);
   if (meta.type === 'records') {
     return (
-      <RecordListEditor value={safeValue} onChange={onChange} fields={meta.fields} addLabel={meta.addLabel} nameKey={meta.nameKey} />
+      <RecordListEditor
+        value={safeValue}
+        onChange={onChange}
+        fields={meta.fields}
+        addLabel={meta.addLabel}
+        nameKey={meta.nameKey}
+        groups={meta.groups}
+        onPreview={onPreview}
+      />
     );
   }
   if (meta.type === 'strings') {
     return <StringsEditor value={safeValue} onChange={onChange} addLabel={meta.addLabel} />;
   }
   return <Fields fields={meta.schema} value={safeValue} onChange={onChange} />;
-}
+});
 
 // Client-side guard so a half-filled record can't be published by accident.
 export function validateSection(meta, data) {
@@ -401,11 +476,11 @@ export function validateSection(meta, data) {
     fields.forEach((field) => {
       const label = prefix ? `${prefix} → ${field.label}` : field.label;
       const value = obj ? obj[field.key] : undefined;
-      if (
-        field.required &&
-        (value === undefined || value === null || value === '' ||
-          (Array.isArray(value) && value.length === 0))
-      ) {
+      const empty = field.type === 'rich'
+        ? isEmptyRich(value)
+        : value === undefined || value === null || value === '' ||
+          (Array.isArray(value) && value.length === 0);
+      if (field.required && empty) {
         errors.push(`${label} is required.`);
       }
       if (field.type === 'list' && Array.isArray(value)) {
