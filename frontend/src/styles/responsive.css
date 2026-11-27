@@ -503,6 +503,27 @@
   }
 }
 
+/* Small screens: keep the logo, theme toggle and menu button evenly aligned. */
+@media (max-width: 640px) {
+  .navbar-inner {
+    gap: 12px;
+  }
+
+  .nav-logo {
+    min-width: 0;
+    font-size: 0.95rem;
+  }
+
+  .nav-logo-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-actions {
+    gap: 8px;
+  }
+}
+
 /* Extra-narrow phones: keep modal text and controls inside 320px screens. */
 @media (max-width: 360px) {
   .modal-body {
@@ -511,5 +532,9 @@
 
   .modal-actions .btn {
     width: 100%;
+  }
+
+  .nav-logo-text {
+    max-width: 92px;
   }
 }

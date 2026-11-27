@@ -1,0 +1,417 @@
+/* ---------- Dedicated project detail pages ---------- */
+/* Every project uses this one layout system. It reuses the portfolio tokens,
+   so themes, colours and typography stay identical across the site. */
+
+.pd-page {
+  min-height: 100vh;
+  padding: calc(var(--nav-height) + 28px) 0 72px;
+  overflow-x: hidden;
+  background: var(--bg-1);
+}
+
+.container.pd-container {
+  width: min(100%, 1180px);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.pd-back-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 22px;
+}
+
+.pd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-1);
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.25s var(--ease-out), border-color 0.25s var(--ease-out),
+    background 0.25s var(--ease-out), color 0.25s var(--ease-out);
+}
+
+.pd-back svg {
+  flex-shrink: 0;
+}
+
+.pd-back:hover {
+  color: var(--accent-2);
+  border-color: rgba(59, 130, 246, 0.5);
+  background: var(--surface-hover);
+  transform: translateX(-3px);
+}
+
+.pd-media-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-2);
+  box-shadow: var(--shadow-lg);
+}
+
+.pd-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--bg-1);
+}
+
+.pd-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+
+.pd-media img.is-loaded {
+  opacity: 1;
+}
+
+.pd-intro {
+  max-width: 820px;
+  margin: 28px 0 34px;
+  min-width: 0;
+}
+
+.pd-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.pd-role {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--accent-2);
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.pd-intro h1 {
+  margin: 0 0 16px;
+  font-size: clamp(2.1rem, 5vw, 3.6rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pd-lead {
+  max-width: 70ch;
+  margin: 0;
+  color: var(--text-2);
+  font-size: clamp(1rem, 1.4vw, 1.1rem);
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.pd-sections {
+  display: grid;
+  gap: 18px;
+}
+
+.pd-grid {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.pd-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pd-grid--one {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pd-grid > .pd-block {
+  height: 100%;
+}
+
+.pd-block {
+  min-width: 0;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.pd-block h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 14px;
+  color: var(--accent-2);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.pd-block h3 svg {
+  flex-shrink: 0;
+}
+
+.pd-rich {
+  color: var(--text-2);
+  font-size: 0.95rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.pd-rich p {
+  margin: 0 0 12px;
+}
+
+.pd-rich p:last-child {
+  margin-bottom: 0;
+}
+
+.pd-empty {
+  margin: 0;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+.pd-tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.pd-tech-card {
+  min-width: 0;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+}
+
+.pd-tech-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: var(--text-1);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.pd-tech-card h4 svg {
+  flex-shrink: 0;
+  color: var(--accent-2);
+}
+
+.chip-sm {
+  padding: 4px 10px;
+  font-size: 0.74rem;
+}
+
+.pd-list-field > ul,
+.pd-list-field > ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pd-list-field > ul > li,
+.pd-list-field > ol > li {
+  position: relative;
+  padding-left: 20px;
+  color: var(--text-2);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.pd-list-field > ul > li::before,
+.pd-list-field > ol > li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.pd-screenshots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.pd-screenshots a {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+}
+
+.pd-screenshots img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.pd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pd-footer {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+
+.pd-footer .pd-back-row {
+  margin-bottom: 0;
+}
+
+.pd-not-found {
+  display: grid;
+  place-items: center;
+}
+
+.pd-not-found-card {
+  width: min(100%, 620px);
+  margin-inline: auto;
+  padding: clamp(28px, 6vw, 56px);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.pd-eyebrow {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--accent-2);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pd-not-found-card h1 {
+  margin: 0 0 14px;
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.pd-not-found-card p {
+  margin: 0 0 26px;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .pd-grid--two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pd-intro {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .pd-page {
+    padding: calc(var(--nav-height) + 18px) 0 48px;
+  }
+
+  .pd-back-row {
+    margin-bottom: 18px;
+  }
+
+  .pd-back {
+    gap: 7px;
+    padding: 7px 11px;
+    font-size: 0.8rem;
+  }
+
+  .pd-back svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .pd-intro {
+    margin: 22px 0 26px;
+  }
+
+  .pd-intro h1 {
+    font-size: clamp(1.9rem, 9vw, 2.5rem);
+  }
+
+  .pd-sections,
+  .pd-grid {
+    gap: 14px;
+  }
+
+  .pd-block {
+    padding: 18px;
+  }
+
+  .pd-tech-grid,
+  .pd-screenshots {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pd-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+  }
+
+  .pd-actions .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .pd-block {
+    padding: 16px;
+  }
+
+  .pd-role,
+  .pd-lead {
+    font-size: 0.92rem;
+  }
+}

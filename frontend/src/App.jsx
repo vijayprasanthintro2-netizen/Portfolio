@@ -1,4 +1,5 @@
-import { lazy, memo, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { TechMarquee } from './components/TechMarquee';
@@ -18,9 +19,10 @@ import { ScrollProgress } from './components/ScrollProgress';
 import { Preloader } from './components/Preloader';
 import { CustomCursor } from './components/CustomCursor';
 import { BackToTop } from './components/BackToTop';
+import { ProjectDetails, ProjectNotFound } from './components/ProjectDetails';
 import { useTheme } from './hooks/useTheme';
 import { ContentProvider } from './content/ContentContext';
-import { scrollToHashTarget } from './lib/hashRoute';
+import { scrollToHashTarget, scrollToY } from './lib/hashRoute';
 
 // The admin panel is a separate route and never needed by portfolio visitors.
 // Splitting it out keeps its editor UI out of the initial bundle.
@@ -29,7 +31,7 @@ const AdminApp = lazy(() =>
 );
 
 // Sections have no props; memoising them stops a theme toggle (or any other
-// Portfolio-level state change) from re-rendering the whole page.
+// portfolio-level state change) from re-rendering the whole page.
 const Static = {
   Hero: memo(Hero),
   TechMarquee: memo(TechMarquee),
@@ -50,45 +52,96 @@ const Static = {
   BackToTop: memo(BackToTop),
 };
 
-function useHashRoute() {
-  const [hash, setHash] = useState(() => window.location.hash);
+// Public section links still use hashes; only project detail pages have their
+// own pathname. Both live inside the same PublicApp so the preloader runs once.
+
+function usePublicScrollRestoration(scrollReady, location) {
+  const restoredInitial = useRef(false);
+
   useEffect(() => {
-    const sync = () => setHash(window.location.hash);
-    window.addEventListener('hashchange', sync);
-    // pushState-based public navigation and history traversal use popstate.
-    window.addEventListener('popstate', sync);
-    return () => {
-      window.removeEventListener('hashchange', sync);
-      window.removeEventListener('popstate', sync);
+    if (!scrollReady) return undefined;
+
+    // Opening a project detail must start at the top of that page. The saved
+    // homepage scroll position is only used when returning to the homepage.
+    if (location.pathname !== '/') {
+      scrollToY(0);
+      return undefined;
+    }
+
+    const restore = () => {
+      const y = location.state?.restoreProjectsScrollY;
+      if (typeof y === 'number' && location.pathname === '/') scrollToY(y);
+      else scrollToHashTarget();
     };
-  }, []);
-  return hash;
+
+    if (!restoredInitial.current) {
+      restoredInitial.current = true;
+      restore();
+      return;
+    }
+
+    // Navigation triggered by our Back button carries an explicit restore
+    // marker. Ordinary section links keep their smooth in-page scroll.
+    if (
+      location.state?.restoreHash ||
+      typeof location.state?.restoreProjectsScrollY === 'number'
+    ) {
+      restore();
+    }
+  }, [scrollReady, location.key]);
+
+  useEffect(() => {
+    if (!scrollReady) return undefined;
+
+    // Browser back/forward does not set a restore marker. React Router updates
+    // `location` on popstate, so read the history entry directly here.
+    const onPop = () => {
+      if (window.location.pathname !== '/') {
+        scrollToY(0);
+        return;
+      }
+
+      const state = window.history.state?.usr;
+      if (typeof state?.restoreProjectsScrollY === 'number' && window.location.pathname === '/') {
+        scrollToY(state.restoreProjectsScrollY);
+      } else {
+        scrollToHashTarget();
+      }
+    };
+
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [scrollReady]);
 }
 
-function Portfolio() {
+function HomeSections() {
+  return (
+    <main className="portfolio-main">
+      <Static.Hero />
+      <Static.TechMarquee />
+      <Static.About />
+      <Static.Skills />
+      <Static.MernFlow />
+      <Static.Projects />
+      <Static.Experience />
+      <Static.Journey />
+      <Static.Education />
+      <Static.BuildSection />
+      <Static.GithubSection />
+      <Static.Contact />
+    </main>
+  );
+}
+
+function PublicApp() {
   const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
   const [booted, setBooted] = useState(false);
   const [scrollReady, setScrollReady] = useState(false);
   const onBootDone = useCallback(() => setBooted(true), []);
   const onPreloaderExit = useCallback(() => setScrollReady(true), []);
 
-  useEffect(() => {
-    if (!scrollReady) return undefined;
-
-    // The sections mount only after the preloader, so the browser's native
-    // fragment scroll has already been missed on refresh. Restore it once the
-    // DOM exists, and keep it in sync with history navigation afterwards.
-    // Effects run after the DOM commit, and Preloader only reports its exit
-    // after the scroll lock is released, so the target is ready now.
-    scrollToHashTarget();
-    window.addEventListener('popstate', scrollToHashTarget);
-    window.addEventListener('hashchange', scrollToHashTarget);
-
-    return () => {
-      window.removeEventListener('popstate', scrollToHashTarget);
-      window.removeEventListener('hashchange', scrollToHashTarget);
-    };
-  }, [scrollReady]);
+  usePublicScrollRestoration(scrollReady, location);
 
   return (
     <>
@@ -99,20 +152,11 @@ function Portfolio() {
           <Static.Backdrop />
           <Static.ScrollProgress />
           <Navbar theme={theme} onToggleTheme={toggleTheme} />
-          <main className="portfolio-main">
-            <Static.Hero />
-            <Static.TechMarquee />
-            <Static.About />
-            <Static.Skills />
-            <Static.MernFlow />
-            <Static.Projects />
-            <Static.Experience />
-            <Static.Journey />
-            <Static.Education />
-            <Static.BuildSection />
-            <Static.GithubSection />
-            <Static.Contact />
-          </main>
+          <Routes>
+            <Route path="/projects/:slug" element={<ProjectDetails />} />
+            <Route path="/" element={<HomeSections />} />
+            <Route path="*" element={<ProjectNotFound />} />
+          </Routes>
           <Static.Footer />
           <Static.BackToTop />
         </>
@@ -122,8 +166,8 @@ function Portfolio() {
 }
 
 export default function App() {
-  const hash = useHashRoute();
-  const isAdmin = hash.startsWith('#/admin');
+  const location = useLocation();
+  const isAdmin = location.hash.startsWith('#/admin');
 
   return (
     <ContentProvider>
@@ -132,7 +176,7 @@ export default function App() {
           <AdminApp />
         </Suspense>
       ) : (
-        <Portfolio />
+        <PublicApp />
       )}
     </ContentProvider>
   );

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 import { getScrollBehavior, subscribeScroll } from '../lib/scrollTracker';
-import { setSectionHash } from '../lib/hashRoute';
 
 export function BackToTop() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [show, setShow] = useState(false);
   const shown = useRef(false);
 
@@ -19,6 +21,18 @@ export function BackToTop() {
     []
   );
 
+  const toTop = () => {
+    const to = { pathname: '/', search: location.search, hash: '#home' };
+    const home = document.getElementById('home');
+
+    if (home) {
+      navigate(to);
+      window.scrollTo({ top: 0, behavior: getScrollBehavior() });
+    } else {
+      navigate(to, { state: { restoreHash: true } });
+    }
+  };
+
   return (
     <AnimatePresence>
       {show && (
@@ -26,10 +40,7 @@ export function BackToTop() {
           type="button"
           className="back-to-top"
           aria-label="Back to top"
-          onClick={() => {
-            setSectionHash('home');
-            window.scrollTo({ top: 0, behavior: getScrollBehavior() });
-          }}
+          onClick={toTop}
           initial={{ opacity: 0, y: 16, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.9 }}

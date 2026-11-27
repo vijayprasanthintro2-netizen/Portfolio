@@ -1,14 +1,17 @@
-// The portfolio uses hash-based routes (e.g. #projects, #/admin/projects).
-// Keeping hash writes and scroll restoration in one place ensures a refreshed
-// URL still lands on the section the visitor was viewing.
+// Public sections are hash routes (e.g. #projects). These helpers keep URL
+// restoration and programmatic scrolling consistent after a refresh or a
+// history traversal.
 
-export function setSectionHash(id) {
-  const hash = `#${id}`;
-  if (window.location.hash !== hash) {
-    // pushState changes the URL without a document reload or hashchange event;
-    // the caller performs the scroll so navigation stays instant.
-    window.history.pushState(null, '', hash);
-  }
+function instantScrollTo(top) {
+  // The site scrolls smoothly by default. `behavior: 'instant'` overrides that
+  // CSS so route changes land directly at the target instead of animating
+  // through the page.
+  window.scrollTo({ top, left: 0, behavior: 'instant' });
+}
+
+export function scrollToY(y) {
+  if (!Number.isFinite(y)) return;
+  instantScrollTo(y);
 }
 
 export function scrollToHashTarget() {
@@ -25,11 +28,8 @@ export function scrollToHashTarget() {
   const target = document.getElementById(id);
   if (!target) return;
 
-  // CSS uses smooth scrolling globally. Restore instantly so a refresh never
-  // looks like it is animating back from the Welcome/Home section.
   const root = document.documentElement;
-  const previous = root.style.scrollBehavior;
-  root.style.scrollBehavior = 'auto';
-  target.scrollIntoView({ block: 'start' });
-  root.style.scrollBehavior = previous;
+  const padding = Number.parseFloat(window.getComputedStyle(root).scrollPaddingTop) || 0;
+  const top = target.getBoundingClientRect().top + window.scrollY - padding;
+  instantScrollTo(Math.max(0, top));
 }

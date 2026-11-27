@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X, ChevronRight } from 'lucide-react';
 import { navLinks as defaultNav, socials as defaultSocials, profile as defaultProfile } from '../config';
 import { useActiveSection } from '../hooks/useActiveSection';
+import { useNavIndicator } from '../hooks/useNavIndicator';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { ThemeToggle } from './ThemeToggle';
 import { Magnetic } from './Magnetic';
 import { LogoMark } from './Logo';
 import { useContent } from '../content/ContentContext';
 import { getScrollBehavior, subscribeScroll } from '../lib/scrollTracker';
-import { setSectionHash } from '../lib/hashRoute';
 
 const githubPath =
   'M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.16c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.53-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 2.87-.39c.97 0 1.95.13 2.87.39 2.18-1.49 3.14-1.18 3.14-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.66.41.35.78 1.05.78 2.12v3.14c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z';
@@ -25,6 +26,8 @@ const mailIcon = (
 );
 
 export function Navbar({ theme, onToggleTheme }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [phase, setPhase] = useState('top'); // 'top' | 'scrolled' | 'hidden'
   const [menuOpen, setMenuOpen] = useState(false);
   const { content } = useContent();
@@ -33,10 +36,13 @@ export function Navbar({ theme, onToggleTheme }) {
   const profile = content.profile || defaultProfile;
   const displayName = profile.shortName || profile.name || 'Vijayprasanth';
   const sectionIds = useMemo(() => navLinks.map((l) => l.id), [navLinks]);
-  const active = useActiveSection(sectionIds);
-  const navLinksRef = useRef(null);
-
-  const [indicator, setIndicator] = useState({ left: 0, width: 0, visible: false });
+  const isProjectDetail = location.pathname.startsWith('/projects/');
+  const [active, selectActive] = useActiveSection(sectionIds, {
+    forceId: isProjectDetail ? 'projects' : null,
+    pathname: location.pathname,
+  });
+  const [desktopNavRef, desktopIndicator] = useNavIndicator(active, '.nav-link.active');
+  const [mobileNavRef, mobileIndicator] = useNavIndicator(active, '.mobile-link.active', menuOpen);
 
   useEffect(
     () =>
@@ -49,28 +55,26 @@ export function Navbar({ theme, onToggleTheme }) {
 
   useBodyScrollLock(menuOpen);
 
-  useEffect(() => {
-    const nav = navLinksRef.current;
-    if (!nav) return;
-    const update = () => {
-      const el = nav.querySelector('.nav-link.active');
-      if (!el) {
-        setIndicator((i) => ({ ...i, visible: false }));
-        return;
-      }
-      setIndicator({ left: el.offsetLeft, width: el.offsetWidth, visible: true });
-    };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, [active, navLinks]);
+  const goTo = useCallback(
+    (id) => {
+      setMenuOpen(false);
+      selectActive(id);
+      const to = { pathname: '/', search: location.search, hash: `#${id}` };
+      const target = document.getElementById(id);
 
-  const goTo = useCallback((id) => {
-    setMenuOpen(false);
-    // Keep the URL in step with the visible section so a refresh restores it.
-    setSectionHash(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: getScrollBehavior(), block: 'start' });
-  }, []);
+      if (target) {
+        // Already on the homepage: keep the smooth in-page scroll and let
+        // React Router update the URL without a reload.
+        navigate(to);
+        target.scrollIntoView({ behavior: getScrollBehavior(), block: 'start' });
+      } else {
+        // Coming from a project detail page: ask PublicApp to restore the
+        // section once the homepage sections have mounted.
+        navigate(to, { state: { restoreHash: true } });
+      }
+    },
+    [location.search, navigate, selectActive]
+  );
 
   return (
     <>
@@ -83,10 +87,14 @@ export function Navbar({ theme, onToggleTheme }) {
             <span className="nav-logo-text">{displayName}</span>
           </button>
 
-          <nav className="nav-links" aria-label="Primary" ref={navLinksRef}>
+          <nav className="nav-links" aria-label="Primary" ref={desktopNavRef}>
             <span
               className="nav-indicator"
-              style={{ left: indicator.left, width: indicator.width, opacity: indicator.visible ? 1 : 0 }}
+              style={{
+                left: desktopIndicator.left,
+                width: desktopIndicator.width,
+                opacity: desktopIndicator.visible ? 1 : 0,
+              }}
               aria-hidden="true"
             />
             {navLinks.map((link) => (
@@ -150,7 +158,16 @@ export function Navbar({ theme, onToggleTheme }) {
             <div className="mobile-menu-top">
               <ThemeToggle theme={theme} onToggle={onToggleTheme} id="theme-toggle-mobile" />
             </div>
-            <div className="mobile-links">
+            <div className="mobile-links" ref={mobileNavRef}>
+              <span
+                className="nav-indicator"
+                style={{
+                  left: mobileIndicator.left,
+                  width: mobileIndicator.width,
+                  opacity: mobileIndicator.visible ? 1 : 0,
+                }}
+                aria-hidden="true"
+              />
               {navLinks.map((link) => (
                 <a
                   key={link.id}

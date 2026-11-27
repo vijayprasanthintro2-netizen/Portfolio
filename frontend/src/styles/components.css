@@ -382,12 +382,19 @@
 }
 
 .mobile-menu .mobile-links {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+.mobile-menu .mobile-links .nav-indicator {
+  bottom: 4px;
+}
+
 .mobile-menu .mobile-link {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1266,6 +1273,10 @@
   background: var(--grad-blue);
   box-shadow: 0 0 10px var(--accent-blue-glow);
   pointer-events: none;
+  transform: translateZ(0);
+  transition: left 0.32s var(--ease-out), width 0.32s var(--ease-out),
+    opacity 0.2s var(--ease-out);
+  will-change: left, width;
 }
 
 .nav-logo .gradient-text {

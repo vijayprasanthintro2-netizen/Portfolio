@@ -241,7 +241,7 @@ Use `?download=1` with a streamed asset URL when a download response is needed.
 
 ## Deployment
 
-This repository does not include deployment configuration such as `vercel.json`, `netlify.toml`, a Dockerfile or a process manager file. Hosting is handled outside the repository.
+Hosting is handled outside the repository. `frontend/vercel.json` contains the SPA fallback needed for direct project URLs (`/projects/:slug`) when the `frontend` folder is deployed to Vercel; it does not rewrite `/api/` requests.
 
 The general flow is:
 
